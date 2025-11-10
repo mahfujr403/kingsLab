@@ -1,0 +1,1457 @@
+{
+  "info": {
+    "name": "King's Lab API",
+    "_postman_id": "kings-lab-api-collection",
+    "description": "Complete API collection for King's Lab backend - AI & Deep Learning Research Lab\n\nThis collection includes all endpoints for:\n- Authentication\n- Research Areas\n- Publications\n- Team Members\n- Lab Information\n- Hero Sections\n- Contact Information\n- Timeline Events\n- Contact Submissions\n- Dashboard Analytics\n\n## Setup Instructions:\n1. Import this collection into Postman\n2. Create an environment with variables: `base_url`, `auth_token`\n3. Set `base_url` to your API URL (e.g., http://localhost:5000)\n4. Login first to get the auth token (automatically saved)\n5. All authenticated requests will use the saved token\n\n## Authentication:\nMost POST, PUT, PATCH, DELETE requests require authentication.\nThe auth token is automatically saved after login.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register Admin User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.environment.set(\"auth_token\", jsonData.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@kingslab.com\",\n  \"password\": \"Admin@123456\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new admin user. Password must be at least 8 characters with uppercase, lowercase, number, and special character."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.environment.set(\"auth_token\", jsonData.token);",
+                  "        console.log(\"Auth token saved:\", jsonData.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@kingslab.com\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password. Returns JWT token that is automatically saved to environment."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get currently authenticated user information."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Admin@123456\",\n  \"newPassword\": \"NewAdmin@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "password"]
+            },
+            "description": "Update user password. Requires current password."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.environment.set(\"auth_token\", jsonData.token);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"your-refresh-token-here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Refresh expired JWT token using refresh token."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Logout current user and invalidate token."
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for user login, registration, and token management."
+    },
+    {
+      "name": "Research Areas",
+      "item": [
+        {
+          "name": "Get All Research Areas",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/research-areas?page=1&limit=10&sort=-createdAt&active=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "research-areas"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                },
+                {
+                  "key": "sort",
+                  "value": "-createdAt",
+                  "description": "Sort field (prefix with - for descending)"
+                },
+                {
+                  "key": "active",
+                  "value": "true",
+                  "description": "Filter by active status"
+                }
+              ]
+            },
+            "description": "Get all research areas with optional filtering, pagination, and sorting."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Research Area by ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/research-areas/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "research-areas", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "research_area_id_here",
+                  "description": "Research Area ID"
+                }
+              ]
+            },
+            "description": "Get a specific research area by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Research Area",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Deep Learning\",\n  \"description\": \"Advanced neural network architectures and training methodologies for complex pattern recognition tasks. Our research focuses on convolutional networks, transformers, and novel optimization techniques.\",\n  \"icon\": \"brain-circuit\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800\",\n  \"keywords\": [\"neural networks\", \"CNN\", \"transformers\", \"optimization\"],\n  \"displayOrder\": 1,\n  \"isActive\": true,\n  \"highlights\": [\n    \"State-of-the-art image classification\",\n    \"Novel architecture design\",\n    \"Efficient training methods\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/research-areas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "research-areas"]
+            },
+            "description": "Create a new research area. Requires admin authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Research Area",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Deep Learning & Neural Networks\",\n  \"description\": \"Updated description with more details about our cutting-edge research in deep learning.\",\n  \"keywords\": [\"neural networks\", \"CNN\", \"transformers\", \"optimization\", \"GPT\"],\n  \"displayOrder\": 1,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/research-areas/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "research-areas", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "research_area_id_here"
+                }
+              ]
+            },
+            "description": "Update an existing research area. Requires admin authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Research Area Active Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/research-areas/:id/toggle-active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "research-areas", ":id", "toggle-active"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "research_area_id_here"
+                }
+              ]
+            },
+            "description": "Toggle active/inactive status of a research area."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Research Area",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/research-areas/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "research-areas", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "research_area_id_here"
+                }
+              ]
+            },
+            "description": "Delete a research area. Requires admin authentication."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing research areas and focus domains."
+    },
+    {
+      "name": "Publications",
+      "item": [
+        {
+          "name": "Get All Publications",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/publications?page=1&limit=10&sort=-year&featured=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "publications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "sort",
+                  "value": "-year"
+                },
+                {
+                  "key": "featured",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "Get all publications with pagination, sorting, and filtering."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Publication by ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/publications/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "publications", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "publication_id_here"
+                }
+              ]
+            },
+            "description": "Get a specific publication by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Search Publications",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/publications/search?q=neural networks&year=2024&author=Smith",
+              "host": ["{{base_url}}"],
+              "path": ["api", "publications", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "neural networks",
+                  "description": "Search query (title, abstract, keywords)"
+                },
+                {
+                  "key": "year",
+                  "value": "2024",
+                  "description": "Filter by year"
+                },
+                {
+                  "key": "author",
+                  "value": "Smith",
+                  "description": "Filter by author name"
+                }
+              ]
+            },
+            "description": "Search publications by title, authors, keywords, or year."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Publications by Year",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/publications/year/:year",
+              "host": ["{{base_url}}"],
+              "path": ["api", "publications", "year", ":year"],
+              "variable": [
+                {
+                  "key": "year",
+                  "value": "2024"
+                }
+              ]
+            },
+            "description": "Get all publications from a specific year."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Publication",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Efficient Transformers for Real-Time Applications\",\n  \"authors\": [\n    {\n      \"name\": \"Dr. Jane Smith\",\n      \"order\": 1,\n      \"isCorresponding\": true\n    },\n    {\n      \"name\": \"John Doe\",\n      \"order\": 2,\n      \"isCorresponding\": false\n    }\n  ],\n  \"abstract\": \"We propose a novel architecture for efficient transformer models that can run in real-time on edge devices. Our approach reduces computational complexity while maintaining accuracy.\",\n  \"year\": 2024,\n  \"venue\": \"NeurIPS 2024\",\n  \"venueType\": \"conference\",\n  \"doi\": \"10.1234/neurips2024.12345\",\n  \"pdfUrl\": \"https://example.com/paper.pdf\",\n  \"externalLinks\": [\n    {\n      \"type\": \"arxiv\",\n      \"url\": \"https://arxiv.org/abs/2024.12345\"\n    },\n    {\n      \"type\": \"code\",\n      \"url\": \"https://github.com/kingslab/efficient-transformers\"\n    }\n  ],\n  \"keywords\": [\"transformers\", \"efficiency\", \"edge computing\", \"real-time\"],\n  \"citationCount\": 15,\n  \"isFeatured\": true,\n  \"researchArea\": \"research_area_id_here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/publications",
+              "host": ["{{base_url}}"],
+              "path": ["api", "publications"]
+            },
+            "description": "Create a new publication. Requires admin authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Publication",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Efficient Transformers for Real-Time Applications (Updated)\",\n  \"citationCount\": 25,\n  \"isFeatured\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/publications/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "publications", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "publication_id_here"
+                }
+              ]
+            },
+            "description": "Update an existing publication."
+          },
+          "response": []
+        },
+        {
+          "name": "Toggle Featured Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/publications/:id/featured",
+              "host": ["{{base_url}}"],
+              "path": ["api", "publications", ":id", "featured"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "publication_id_here"
+                }
+              ]
+            },
+            "description": "Toggle featured status of a publication."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Publication",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/publications/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "publications", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "publication_id_here"
+                }
+              ]
+            },
+            "description": "Delete a publication."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing academic publications and research papers."
+    },
+    {
+      "name": "Team Members",
+      "item": [
+        {
+          "name": "Get All Team Members",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/team-members?page=1&limit=20&sort=displayOrder&active=true",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team-members"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "displayOrder"
+                },
+                {
+                  "key": "active",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Get all team members with pagination and filtering."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Team Member by ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/team-members/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team-members", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "team_member_id_here"
+                }
+              ]
+            },
+            "description": "Get a specific team member by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Team Members by Role",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/team-members/role/:role",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team-members", "role", ":role"],
+              "variable": [
+                {
+                  "key": "role",
+                  "value": "PhD Student",
+                  "description": "Role: Principal Investigator, Postdoc, PhD Student, Master Student, Research Assistant"
+                }
+              ]
+            },
+            "description": "Get team members filtered by role."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Team Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. Sarah Johnson\",\n  \"role\": \"Postdoc\",\n  \"email\": \"sarah.johnson@kingslab.com\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400\",\n  \"bio\": \"Dr. Johnson specializes in computer vision and has extensive experience in developing novel architectures for image segmentation and object detection.\",\n  \"researchInterests\": [\n    \"Computer Vision\",\n    \"Image Segmentation\",\n    \"Object Detection\",\n    \"Medical Imaging\"\n  ],\n  \"education\": [\n    {\n      \"degree\": \"Ph.D. in Computer Science\",\n      \"institution\": \"MIT\",\n      \"year\": 2022\n    },\n    {\n      \"degree\": \"M.S. in AI\",\n      \"institution\": \"Stanford University\",\n      \"year\": 2018\n    }\n  ],\n  \"socialLinks\": {\n    \"twitter\": \"https://twitter.com/sarahjohnson\",\n    \"linkedin\": \"https://linkedin.com/in/sarahjohnson\",\n    \"github\": \"https://github.com/sarahjohnson\",\n    \"googleScholar\": \"https://scholar.google.com/citations?user=xyz\",\n    \"personalWebsite\": \"https://sarahjohnson.com\"\n  },\n  \"displayOrder\": 2,\n  \"isActive\": true,\n  \"joinDate\": \"2023-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/team-members",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team-members"]
+            },
+            "description": "Create a new team member. Requires admin authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Team Member",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Updated bio with more recent achievements and research focus.\",\n  \"researchInterests\": [\n    \"Computer Vision\",\n    \"Image Segmentation\",\n    \"Object Detection\",\n    \"Medical Imaging\",\n    \"3D Vision\"\n  ],\n  \"displayOrder\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/team-members/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team-members", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "team_member_id_here"
+                }
+              ]
+            },
+            "description": "Update an existing team member."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Display Order",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"displayOrder\": 3\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/team-members/:id/order",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team-members", ":id", "order"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "team_member_id_here"
+                }
+              ]
+            },
+            "description": "Update display order of a team member."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Team Member",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/team-members/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "team-members", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "team_member_id_here"
+                }
+              ]
+            },
+            "description": "Delete a team member."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing lab team members and researchers."
+    },
+    {
+      "name": "Lab Info",
+      "item": [
+        {
+          "name": "Get Lab Info",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/lab-info",
+              "host": ["{{base_url}}"],
+              "path": ["api", "lab-info"]
+            },
+            "description": "Get general lab information (singleton)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Lab Statistics",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/lab-info/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "lab-info", "stats"]
+            },
+            "description": "Get lab statistics (publications count, team members count, etc.)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Lab Info",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"labName\": \"King's Lab\",\n  \"tagline\": \"Advancing AI Research for a Better Tomorrow\",\n  \"mission\": \"Our mission is to push the boundaries of artificial intelligence research, focusing on deep learning, computer vision, and natural language processing to solve real-world problems.\",\n  \"vision\": \"To be a world-leading research laboratory that bridges the gap between cutting-edge AI theory and practical applications that benefit society.\",\n  \"about\": \"King's Lab is a premier artificial intelligence research laboratory founded in 2020. We bring together talented researchers from around the world to work on challenging problems in machine learning and AI.\",\n  \"foundingYear\": 2020,\n  \"location\": \"Massachusetts Institute of Technology, Cambridge, MA\",\n  \"affiliations\": [\n    \"MIT Computer Science and AI Laboratory\",\n    \"National Science Foundation\",\n    \"Google Research Partnership\"\n  ],\n  \"awards\": [\n    {\n      \"title\": \"Best Paper Award - NeurIPS 2023\",\n      \"year\": 2023,\n      \"description\": \"For groundbreaking work in efficient transformer architectures\"\n    },\n    {\n      \"title\": \"NSF CAREER Award\",\n      \"year\": 2022,\n      \"description\": \"Recognition for early career research excellence\"\n    }\n  ],\n  \"researchHighlights\": [\n    \"Over 100 publications in top-tier conferences\",\n    \"15+ open-source projects with 10k+ GitHub stars\",\n    \"Collaborations with industry leaders\",\n    \"5 PhD students graduated and placed in top positions\"\n  ],\n  \"logoUrl\": \"https://example.com/logo.png\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lab-info",
+              "host": ["{{base_url}}"],
+              "path": ["api", "lab-info"]
+            },
+            "description": "Update lab information. Creates if doesn't exist (upsert)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing general lab information."
+    },
+    {
+      "name": "Hero Sections",
+      "item": [
+        {
+          "name": "Get Active Hero",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/hero",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hero"]
+            },
+            "description": "Get the currently active hero section for the homepage."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Heroes (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/hero/all",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hero", "all"]
+            },
+            "description": "Get all hero sections (admin only)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hero by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/hero/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hero", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "hero_id_here"
+                }
+              ]
+            },
+            "description": "Get a specific hero by ID (admin only)."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Hero",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Welcome to King's Lab\",\n  \"subtitle\": \"Leading AI & Deep Learning Research\",\n  \"description\": \"Pushing the boundaries of artificial intelligence through innovative research in deep learning, computer vision, and natural language processing.\",\n  \"backgroundImage\": \"https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1920\",\n  \"backgroundVideo\": \"\",\n  \"ctaButtons\": [\n    {\n      \"text\": \"Explore Research\",\n      \"link\": \"/research\",\n      \"style\": \"primary\",\n      \"order\": 1\n    },\n    {\n      \"text\": \"Join Our Team\",\n      \"link\": \"/team\",\n      \"style\": \"secondary\",\n      \"order\": 2\n    }\n  ],\n  \"isActive\": false,\n  \"displayOrder\": 1,\n  \"animationSettings\": {\n    \"enableParticles\": true,\n    \"particleCount\": 50,\n    \"enableTypingEffect\": true\n  },\n  \"overlaySettings\": {\n    \"opacity\": 0.6,\n    \"color\": \"#000000\"\n  },\n  \"startDate\": null,\n  \"endDate\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/hero",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hero"]
+            },
+            "description": "Create a new hero section."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Hero",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Welcome to King's Lab - Updated\",\n  \"description\": \"Updated description with new highlights and achievements.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/hero/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hero", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "hero_id_here"
+                }
+              ]
+            },
+            "description": "Update an existing hero section."
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Hero",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/hero/:id/activate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hero", ":id", "activate"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "hero_id_here"
+                }
+              ]
+            },
+            "description": "Activate a hero section (deactivates all others)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Hero",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/hero/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "hero", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "hero_id_here"
+                }
+              ]
+            },
+            "description": "Delete a hero section."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing homepage hero sections."
+    },
+    {
+      "name": "Contact Info",
+      "item": [
+        {
+          "name": "Get Contact Info",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/contact-info",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-info"]
+            },
+            "description": "Get lab contact information (singleton)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Contact Info",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"contact@kingslab.com\",\n  \"phone\": \"+1 (617) 555-0123\",\n  \"address\": \"32 Vassar Street, Cambridge, MA 02139\",\n  \"building\": \"Stata Center\",\n  \"room\": \"Room 456\",\n  \"mapCoordinates\": {\n    \"latitude\": 42.361763,\n    \"longitude\": -71.090686\n  },\n  \"officeHours\": {\n    \"monday\": \"9:00 AM - 5:00 PM\",\n    \"tuesday\": \"9:00 AM - 5:00 PM\",\n    \"wednesday\": \"9:00 AM - 5:00 PM\",\n    \"thursday\": \"9:00 AM - 5:00 PM\",\n    \"friday\": \"9:00 AM - 3:00 PM\",\n    \"saturday\": \"Closed\",\n    \"sunday\": \"Closed\"\n  },\n  \"socialMedia\": {\n    \"twitter\": \"https://twitter.com/kingslab\",\n    \"linkedin\": \"https://linkedin.com/company/kingslab\",\n    \"github\": \"https://github.com/kingslab\",\n    \"youtube\": \"https://youtube.com/@kingslab\"\n  },\n  \"mailingAddress\": \"King's Lab, MIT CSAIL, 32 Vassar St, Cambridge, MA 02139\",\n  \"department\": \"Computer Science and Artificial Intelligence Laboratory\",\n  \"institution\": \"Massachusetts Institute of Technology\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/contact-info",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-info"]
+            },
+            "description": "Update contact information. Creates if doesn't exist (upsert)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing lab contact information."
+    },
+    {
+      "name": "Timeline",
+      "item": [
+        {
+          "name": "Get All Timeline Events",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/timeline?sort=-date",
+              "host": ["{{base_url}}"],
+              "path": ["api", "timeline"],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "-date"
+                }
+              ]
+            },
+            "description": "Get all timeline events sorted by date."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Timeline Event by ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/timeline/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "timeline", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "timeline_id_here"
+                }
+              ]
+            },
+            "description": "Get a specific timeline event by ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Timeline Events by Year",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/timeline/year/:year",
+              "host": ["{{base_url}}"],
+              "path": ["api", "timeline", "year", ":year"],
+              "variable": [
+                {
+                  "key": "year",
+                  "value": "2024"
+                }
+              ]
+            },
+            "description": "Get timeline events from a specific year."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Timeline Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lab Founded\",\n  \"description\": \"King's Lab was officially established at MIT with a focus on artificial intelligence and deep learning research.\",\n  \"date\": \"2020-01-15\",\n  \"year\": 2020,\n  \"eventType\": \"milestone\",\n  \"imageUrl\": \"https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800\",\n  \"relatedLinks\": [\n    {\n      \"title\": \"Press Release\",\n      \"url\": \"https://example.com/press-release\"\n    }\n  ],\n  \"isHighlight\": true,\n  \"displayOrder\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/timeline",
+              "host": ["{{base_url}}"],
+              "path": ["api", "timeline"]
+            },
+            "description": "Create a new timeline event. Event types: milestone, publication, award, achievement, collaboration."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Timeline Event",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Lab Founded - Updated\",\n  \"description\": \"Updated description with more details about the founding.\",\n  \"isHighlight\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/timeline/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "timeline", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "timeline_id_here"
+                }
+              ]
+            },
+            "description": "Update an existing timeline event."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Timeline Event",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/timeline/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "timeline", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "timeline_id_here"
+                }
+              ]
+            },
+            "description": "Delete a timeline event."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing lab timeline and milestones."
+    },
+    {
+      "name": "Contact Submissions",
+      "item": [
+        {
+          "name": "Submit Contact Form",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"subject\": \"Research Collaboration Inquiry\",\n  \"message\": \"I am interested in collaborating on deep learning research. I have experience in computer vision and would love to discuss potential opportunities.\",\n  \"phone\": \"+1 (555) 123-4567\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/contact-submissions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-submissions"]
+            },
+            "description": "Submit a contact form (public endpoint, no auth required)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Contact Submissions (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/contact-submissions?page=1&limit=20&status=new&readStatus=unread&sort=-createdAt",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-submissions"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "status",
+                  "value": "new",
+                  "description": "Filter by status: new, in-progress, resolved, archived"
+                },
+                {
+                  "key": "readStatus",
+                  "value": "unread",
+                  "description": "Filter by read status: read, unread"
+                },
+                {
+                  "key": "sort",
+                  "value": "-createdAt"
+                }
+              ]
+            },
+            "description": "Get all contact submissions (admin only) with filtering and pagination."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Contact Submission by ID (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/contact-submissions/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-submissions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "submission_id_here"
+                }
+              ]
+            },
+            "description": "Get a specific contact submission by ID (admin only)."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/contact-submissions/:id/read",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-submissions", ":id", "read"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "submission_id_here"
+                }
+              ]
+            },
+            "description": "Mark a contact submission as read/unread (toggles)."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Submission Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in-progress\",\n  \"adminNotes\": \"Following up with the inquiry via email.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/contact-submissions/:id/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-submissions", ":id", "status"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "submission_id_here"
+                }
+              ]
+            },
+            "description": "Update status and add admin notes. Status options: new, in-progress, resolved, archived."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Submission Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/contact-submissions/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-submissions", "stats"]
+            },
+            "description": "Get statistics about contact submissions (counts by status, recent submissions, etc.)."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Contact Submission",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/contact-submissions/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "contact-submissions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "submission_id_here"
+                }
+              ]
+            },
+            "description": "Delete a contact submission (admin only)."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for managing contact form submissions."
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "stats"]
+            },
+            "description": "Get comprehensive dashboard statistics including counts of all entities, recent activity, and trends."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Recent Activity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/recent-activity?limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "recent-activity"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of recent activities to return"
+                }
+              ]
+            },
+            "description": "Get recent activity across all content types (publications, team members, contact submissions, etc.)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/analytics?period=month",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "analytics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month",
+                  "description": "Analytics period: week, month, year"
+                }
+              ]
+            },
+            "description": "Get analytics data including publication trends, submission trends, and team growth over time."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints for admin dashboard analytics and statistics."
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-attach auth token to requests if available",
+          "const token = pm.environment.get('auth_token');",
+          "if (token) {",
+          "    pm.request.headers.add({",
+          "        key: 'Authorization',",
+          "        value: 'Bearer ' + token",
+          "    });",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Log response for debugging",
+          "console.log('Status:', pm.response.code);",
+          "console.log('Response:', pm.response.text());",
+          "",
+          "// Automatically save IDs from create operations",
+          "if (pm.response.code === 201) {",
+          "    try {",
+          "        const jsonData = pm.response.json();",
+          "        if (jsonData.data && jsonData.data._id) {",
+          "            const resourceName = pm.request.url.path[pm.request.url.path.length - 1];",
+          "            pm.environment.set('last_created_' + resourceName + '_id', jsonData.data._id);",
+          "            console.log('Saved ID:', jsonData.data._id);",
+          "        }",
+          "    } catch (e) {",
+          "        console.log('Could not parse response');",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
