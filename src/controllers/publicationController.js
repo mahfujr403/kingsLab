@@ -1,6 +1,7 @@
 const Publication = require('../models/Publication');
 const TeamMember = require('../models/TeamMember');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/apiResponse');
+const { uploadBufferToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 const { DEFAULT_PAGE, DEFAULT_LIMIT, MAX_LIMIT } = require('../config/constants');
 
 // @desc    Get all publications
@@ -97,7 +98,26 @@ exports.getPublication = async (req, res, next) => {
 // @access  Private
 exports.createPublication = async (req, res, next) => {
   try {
-    const publication = await Publication.create(req.body);
+    const data = { ...req.body };
+    
+    // Handle file uploads if provided
+    if (req.files) {
+      // Handle certificate upload
+      if (req.files.certificate && req.files.certificate[0]) {
+        const result = await uploadBufferToCloudinary(req.files.certificate[0].buffer, 'publications/certificates');
+        data.certificate_url = result.url;
+        data.certificate_public_id = result.public_id;
+      }
+      
+      // Handle event photo upload
+      if (req.files.event_photo_file && req.files.event_photo_file[0]) {
+        const result = await uploadBufferToCloudinary(req.files.event_photo_file[0].buffer, 'publications/events');
+        data.event_photo = result.url;
+        data.event_photo_public_id = result.public_id;
+      }
+    }
+    
+    const publication = await Publication.create(data);
 
     // Update publications count for all authors
     if (publication.author_ids && publication.author_ids.length > 0) {
@@ -128,10 +148,39 @@ exports.updatePublication = async (req, res, next) => {
     if (!oldPublication) {
       return errorResponse(res, 'Publication not found', 404);
     }
+    
+    const data = { ...req.body };
+    
+    // Handle file uploads if provided
+    if (req.files) {
+      // Handle certificate upload
+      if (req.files.certificate && req.files.certificate[0]) {
+        // Delete old certificate from Cloudinary if exists
+        if (oldPublication.certificate_public_id) {
+          await deleteFromCloudinary(oldPublication.certificate_public_id);
+        }
+        
+        const result = await uploadBufferToCloudinary(req.files.certificate[0].buffer, 'publications/certificates');
+        data.certificate_url = result.url;
+        data.certificate_public_id = result.public_id;
+      }
+      
+      // Handle event photo upload
+      if (req.files.event_photo_file && req.files.event_photo_file[0]) {
+        // Delete old event photo from Cloudinary if exists
+        if (oldPublication.event_photo_public_id) {
+          await deleteFromCloudinary(oldPublication.event_photo_public_id);
+        }
+        
+        const result = await uploadBufferToCloudinary(req.files.event_photo_file[0].buffer, 'publications/events');
+        data.event_photo = result.url;
+        data.event_photo_public_id = result.public_id;
+      }
+    }
 
     const publication = await Publication.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      data,
       {
         new: true,
         runValidators: true
@@ -166,6 +215,14 @@ exports.deletePublication = async (req, res, next) => {
 
     if (!publication) {
       return errorResponse(res, 'Publication not found', 404);
+    }
+    
+    // Delete files from Cloudinary if they exist
+    if (publication.certificate_public_id) {
+      await deleteFromCloudinary(publication.certificate_public_id);
+    }
+    if (publication.event_photo_public_id) {
+      await deleteFromCloudinary(publication.event_photo_public_id);
     }
 
     // Update publications count for all authors

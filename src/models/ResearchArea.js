@@ -24,6 +24,10 @@ const researchAreaSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  image_public_id: {
+    type: String,
+    trim: true
+  },
   order: {
     type: Number,
     default: 0

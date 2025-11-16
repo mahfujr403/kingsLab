@@ -2,16 +2,8 @@ const multer = require('multer');
 const path = require('path');
 const { ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE } = require('../config/constants');
 
-// Configure multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure multer to use memory storage (files in buffer, not saved to disk)
+const storage = multer.memoryStorage();
 
 // File filter
 const fileFilter = (req, file, cb) => {
@@ -22,7 +14,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Create multer instance
+// Create multer instance with memory storage
 const upload = multer({
   storage: storage,
   limits: {

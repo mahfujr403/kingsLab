@@ -1,4 +1,5 @@
 const cloudinary = require('cloudinary').v2;
+const streamifier = require('streamifier');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -6,13 +7,14 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+// Upload from file path (legacy support)
 const uploadToCloudinary = async (filePath, folder = 'kingslab') => {
   try {
     const result = await cloudinary.uploader.upload(filePath, {
       folder: folder,
       resource_type: 'auto',
       transformation: [
-        { width: 800, height: 800, crop: 'limit' },
+        { crop: 'limit' },// width: 800, height: 800,
         { quality: 'auto' },
         { fetch_format: 'auto' }
       ]
@@ -28,6 +30,37 @@ const uploadToCloudinary = async (filePath, folder = 'kingslab') => {
   }
 };
 
+// Upload from buffer (for multer memory storage)
+const uploadBufferToCloudinary = (buffer, folder = 'kingslab', options = {}) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: folder,
+        resource_type: 'auto',
+        transformation: [
+          {  crop: 'limit' },//width: 800, height: 800,
+          { quality: 'auto' },
+          { fetch_format: 'auto' }
+        ],
+        ...options
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Cloudinary upload error:', error);
+          reject(error);
+        } else {
+          resolve({
+            url: result.secure_url,
+            public_id: result.public_id
+          });
+        }
+      }
+    );
+
+    streamifier.createReadStream(buffer).pipe(uploadStream);
+  });
+};
+
 const deleteFromCloudinary = async (publicId) => {
   try {
     await cloudinary.uploader.destroy(publicId);
@@ -40,5 +73,6 @@ const deleteFromCloudinary = async (publicId) => {
 module.exports = {
   cloudinary,
   uploadToCloudinary,
+  uploadBufferToCloudinary,
   deleteFromCloudinary
 };

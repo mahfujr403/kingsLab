@@ -4,6 +4,7 @@ const Timeline = require('../models/Timeline');
 const { protect } = require('../middleware/auth');
 const { timelineValidation, idValidation, validate } = require('../middleware/validator');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/apiResponse');
+const upload = require('../middleware/upload');
 
 // @route   GET /api/timeline
 router.get('/timeline', async (req, res, next) => {
@@ -42,7 +43,7 @@ router.get('/timeline/:id', idValidation, validate, async (req, res, next) => {
 });
 
 // @route   POST /api/admin/timeline
-router.post('/admin/timeline', protect, timelineValidation, validate, async (req, res, next) => {
+router.post('/admin/timeline', protect, upload.single('image'), async (req, res, next) => {
   try {
     const event = await Timeline.create(req.body);
     return successResponse(res, event, 'Timeline event created successfully', 201);
@@ -52,7 +53,7 @@ router.post('/admin/timeline', protect, timelineValidation, validate, async (req
 });
 
 // @route   PUT /api/admin/timeline/:id
-router.put('/admin/timeline/:id', protect, idValidation, timelineValidation, validate, async (req, res, next) => {
+router.put('/admin/timeline/:id', protect, idValidation, validate, upload.single('image'), async (req, res, next) => {
   try {
     const event = await Timeline.findByIdAndUpdate(
       req.params.id,

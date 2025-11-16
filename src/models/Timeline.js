@@ -21,6 +21,23 @@ const timelineSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Description is required']
   },
+  image: {
+    type: String,
+    trim: true
+  },
+  image_public_id: {
+    type: String,
+    trim: true
+  },
+  category: {
+    type: String,
+    enum: ['milestone', 'achievement', 'publication', 'award'],
+    default: 'milestone'
+  },
+  order: {
+    type: Number,
+    default: 0
+  },
   date: {
     type: Date,
     required: [true, 'Date is required']

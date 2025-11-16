@@ -1,5 +1,6 @@
 const Timeline = require('../models/Timeline');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/apiResponse');
+const { uploadBufferToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 
 // @desc    Get all timeline events
 // @route   GET /api/timeline
@@ -49,7 +50,16 @@ exports.getTimelineEvent = async (req, res, next) => {
 // @access  Private
 exports.createTimelineEvent = async (req, res, next) => {
   try {
-    const event = await Timeline.create(req.body);
+    const data = { ...req.body };
+    
+    // Handle image upload if file is provided
+    if (req.file) {
+      const result = await uploadBufferToCloudinary(req.file.buffer, 'timeline');
+      data.image = result.url;
+      data.image_public_id = result.public_id;
+    }
+    
+    const event = await Timeline.create(data);
     return successResponse(res, event, 'Timeline event created successfully', 201);
   } catch (error) {
     next(error);
@@ -61,17 +71,34 @@ exports.createTimelineEvent = async (req, res, next) => {
 // @access  Private
 exports.updateTimelineEvent = async (req, res, next) => {
   try {
-    const event = await Timeline.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    const event = await Timeline.findById(req.params.id);
     
     if (!event) {
       return errorResponse(res, 'Timeline event not found', 404);
     }
     
-    return successResponse(res, event, 'Timeline event updated successfully');
+    const data = { ...req.body };
+    
+    // Handle new image upload if file is provided
+    if (req.file) {
+      // Delete old image from Cloudinary if exists
+      if (event.image_public_id) {
+        await deleteFromCloudinary(event.image_public_id);
+      }
+      
+      // Upload new image
+      const result = await uploadBufferToCloudinary(req.file.buffer, 'timeline');
+      data.image = result.url;
+      data.image_public_id = result.public_id;
+    }
+    
+    const updatedEvent = await Timeline.findByIdAndUpdate(
+      req.params.id,
+      data,
+      { new: true, runValidators: true }
+    );
+    
+    return successResponse(res, updatedEvent, 'Timeline event updated successfully');
   } catch (error) {
     next(error);
   }
@@ -82,11 +109,18 @@ exports.updateTimelineEvent = async (req, res, next) => {
 // @access  Private
 exports.deleteTimelineEvent = async (req, res, next) => {
   try {
-    const event = await Timeline.findByIdAndDelete(req.params.id);
+    const event = await Timeline.findById(req.params.id);
     
     if (!event) {
       return errorResponse(res, 'Timeline event not found', 404);
     }
+    
+    // Delete image from Cloudinary if exists
+    if (event.image_public_id) {
+      await deleteFromCloudinary(event.image_public_id);
+    }
+    
+    await event.deleteOne();
     
     return successResponse(res, null, 'Timeline event deleted successfully');
   } catch (error) {

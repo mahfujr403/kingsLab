@@ -1,8 +1,7 @@
 const TeamMember = require('../models/TeamMember');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/apiResponse');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
+const { uploadBufferToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 const { DEFAULT_PAGE, DEFAULT_LIMIT, MAX_LIMIT } = require('../config/constants');
-const fs = require('fs').promises;
 
 // @desc    Get all team members
 // @route   GET /api/team-members
@@ -101,7 +100,17 @@ exports.getTeamMember = async (req, res, next) => {
 // @access  Private
 exports.createTeamMember = async (req, res, next) => {
   try {
-    const teamMember = await TeamMember.create(req.body);
+    const data = { ...req.body };
+    
+    // Handle image upload if file is provided
+    if (req.file) {
+      const result = await uploadBufferToCloudinary(req.file.buffer, 'team-members');
+      data.image = result.url;
+      data.photo_url = result.url;
+      data.photo_public_id = result.public_id;
+    }
+    
+    const teamMember = await TeamMember.create(data);
     return successResponse(res, teamMember, 'Team member created successfully', 201);
   } catch (error) {
     next(error);
@@ -113,20 +122,38 @@ exports.createTeamMember = async (req, res, next) => {
 // @access  Private
 exports.updateTeamMember = async (req, res, next) => {
   try {
-    const teamMember = await TeamMember.findByIdAndUpdate(
+    const teamMember = await TeamMember.findById(req.params.id);
+    
+    if (!teamMember) {
+      return errorResponse(res, 'Team member not found', 404);
+    }
+    
+    const data = { ...req.body };
+    
+    // Handle new photo upload if file is provided
+    if (req.file) {
+      // Delete old photo from Cloudinary if exists
+      if (teamMember.photo_public_id) {
+        await deleteFromCloudinary(teamMember.photo_public_id);
+      }
+      
+      // Upload new photo
+      const result = await uploadBufferToCloudinary(req.file.buffer, 'team-members');
+      data.image = result.url;
+      data.photo_url = result.url;
+      data.photo_public_id = result.public_id;
+    }
+    
+    const updatedTeamMember = await TeamMember.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      data,
       {
         new: true,
         runValidators: true
       }
     );
 
-    if (!teamMember) {
-      return errorResponse(res, 'Team member not found', 404);
-    }
-
-    return successResponse(res, teamMember, 'Team member updated successfully');
+    return successResponse(res, updatedTeamMember, 'Team member updated successfully');
   } catch (error) {
     next(error);
   }
@@ -176,33 +203,17 @@ exports.uploadPhoto = async (req, res, next) => {
       await deleteFromCloudinary(teamMember.photo_public_id);
     }
 
-    // Upload to Cloudinary
-    let photoUrl = '';
-    let photoPublicId = '';
-
-    if (process.env.CLOUDINARY_CLOUD_NAME) {
-      const result = await uploadToCloudinary(req.file.path, 'team-members');
-      photoUrl = result.url;
-      photoPublicId = result.public_id;
-      
-      // Delete local file
-      await fs.unlink(req.file.path);
-    } else {
-      // Use local upload
-      photoUrl = `/uploads/${req.file.filename}`;
-    }
-
+    // Upload to Cloudinary from buffer
+    const result = await uploadBufferToCloudinary(req.file.buffer, 'team-members');
+    
     // Update team member
-    teamMember.photo_url = photoUrl;
-    teamMember.photo_public_id = photoPublicId;
+    teamMember.photo_url = result.url;
+    teamMember.image = result.url;
+    teamMember.photo_public_id = result.public_id;
     await teamMember.save();
 
     return successResponse(res, teamMember, 'Photo uploaded successfully');
   } catch (error) {
-    // Delete uploaded file if error occurs
-    if (req.file) {
-      await fs.unlink(req.file.path).catch(() => {});
-    }
     next(error);
   }
 };

@@ -1,5 +1,6 @@
 const ResearchArea = require('../models/ResearchArea');
 const { successResponse, errorResponse, paginatedResponse } = require('../utils/apiResponse');
+const { uploadBufferToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 const { DEFAULT_PAGE, DEFAULT_LIMIT, MAX_LIMIT } = require('../config/constants');
 
 // @desc    Get all research areas
@@ -82,7 +83,16 @@ exports.getResearchArea = async (req, res, next) => {
 // @access  Private
 exports.createResearchArea = async (req, res, next) => {
   try {
-    const researchArea = await ResearchArea.create(req.body);
+    const data = { ...req.body };
+    
+    // Handle image upload if file is provided
+    if (req.file) {
+      const result = await uploadBufferToCloudinary(req.file.buffer, 'research-areas');
+      data.image = result.url;
+      data.image_public_id = result.public_id;
+    }
+    
+    const researchArea = await ResearchArea.create(data);
     return successResponse(res, researchArea, 'Research area created successfully', 201);
   } catch (error) {
     if (error.code === 11000) {
@@ -97,20 +107,37 @@ exports.createResearchArea = async (req, res, next) => {
 // @access  Private
 exports.updateResearchArea = async (req, res, next) => {
   try {
-    const researchArea = await ResearchArea.findByIdAndUpdate(
+    const researchArea = await ResearchArea.findById(req.params.id);
+    
+    if (!researchArea) {
+      return errorResponse(res, 'Research area not found', 404);
+    }
+    
+    const data = { ...req.body };
+    
+    // Handle new image upload if file is provided
+    if (req.file) {
+      // Delete old image from Cloudinary if exists
+      if (researchArea.image_public_id) {
+        await deleteFromCloudinary(researchArea.image_public_id);
+      }
+      
+      // Upload new image
+      const result = await uploadBufferToCloudinary(req.file.buffer, 'research-areas');
+      data.image = result.url;
+      data.image_public_id = result.public_id;
+    }
+    
+    const updatedResearchArea = await ResearchArea.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      data,
       {
         new: true,
         runValidators: true
       }
     );
 
-    if (!researchArea) {
-      return errorResponse(res, 'Research area not found', 404);
-    }
-
-    return successResponse(res, researchArea, 'Research area updated successfully');
+    return successResponse(res, updatedResearchArea, 'Research area updated successfully');
   } catch (error) {
     if (error.code === 11000) {
       return errorResponse(res, 'Research area with this title already exists', 400);
@@ -124,11 +151,18 @@ exports.updateResearchArea = async (req, res, next) => {
 // @access  Private
 exports.deleteResearchArea = async (req, res, next) => {
   try {
-    const researchArea = await ResearchArea.findByIdAndDelete(req.params.id);
+    const researchArea = await ResearchArea.findById(req.params.id);
 
     if (!researchArea) {
       return errorResponse(res, 'Research area not found', 404);
     }
+    
+    // Delete image from Cloudinary if exists
+    if (researchArea.image_public_id) {
+      await deleteFromCloudinary(researchArea.image_public_id);
+    }
+
+    await researchArea.deleteOne();
 
     return successResponse(res, null, 'Research area deleted successfully');
   } catch (error) {

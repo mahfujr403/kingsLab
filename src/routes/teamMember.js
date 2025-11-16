@@ -17,8 +17,8 @@ router.get('/team-members', getAllTeamMembers);
 router.get('/team-members/:id', idValidation, validate, getTeamMember);
 
 // Admin routes
-router.post('/admin/team-members', protect, teamMemberValidation, validate, createTeamMember);
-router.put('/admin/team-members/:id', protect, idValidation, teamMemberValidation, validate, updateTeamMember);
+router.post('/admin/team-members', protect, upload.single('image'), createTeamMember);
+router.put('/admin/team-members/:id', protect, idValidation, validate, upload.single('image'), updateTeamMember);
 router.delete('/admin/team-members/:id', protect, idValidation, validate, deleteTeamMember);
 router.post('/admin/team-members/:id/photo', protect, idValidation, validate, upload.single('photo'), uploadPhoto);
 

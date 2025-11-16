@@ -53,6 +53,22 @@ const publicationSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  certificate_url: {
+    type: String,
+    trim: true
+  },
+  certificate_public_id: {
+    type: String,
+    trim: true
+  },
+  event_photo: {
+    type: String,
+    trim: true
+  },
+  event_photo_public_id: {
+    type: String,
+    trim: true
+  },
   citations: {
     type: Number,
     default: 0,
