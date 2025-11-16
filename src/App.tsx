@@ -59,8 +59,6 @@ const SkipToContent = lazy(() =>
   })),
 );
 
-// Debug panel for API testing
-import { ApiDebugPanel } from "./components/ApiDebugPanel";
 // Uncomment below to show persistent API status warning when backend is down
 // import { ApiStatusIndicator } from "./components/ApiStatusIndicator";
 
@@ -132,7 +130,6 @@ function MainSite() {
         </main>
         <Footer />
       </Suspense>
-      <ApiDebugPanel />
     </div>
   );
 }

@@ -16,6 +16,14 @@ interface Node {
   connections: number[];
 }
 
+// Extend HeroData to include CTA text fields used in this component
+declare module "../lib/types" {
+  interface HeroData {
+    cta_primary_text?: string;
+    cta_secondary_text?: string;
+  }
+}
+
 export function HeroAI() {
   // Fetch lab info for title and tagline
   const { data: labInfo, error: labInfoError } = useApi(
@@ -36,6 +44,13 @@ export function HeroAI() {
     () => api.getHeroData(),
     mockHeroData,
     "hero-data" // Add cache key to prevent repeated requests
+  );
+
+  // Fetch dynamic counts for publications, team members, projects
+  const { data: heroStats } = useApi(
+    () => api.getHeroStats(),
+    { publications: 0, team_members: 0, projects: 0, thresholds: { publications: 50, team: 15, projects: 10 } },
+    'hero-stats'
   );
 
   // Data sources are now loaded via useApi with proper caching
@@ -129,7 +144,7 @@ export function HeroAI() {
 
     updateCanvas();
     
-    let resizeTimeout: NodeJS.Timeout;
+    let resizeTimeout: ReturnType<typeof setTimeout>;
     const handleResize = () => {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(updateCanvas, 100); // Debounce resize
@@ -434,22 +449,25 @@ export function HeroAI() {
             className="grid grid-cols-3 gap-8 max-w-3xl mx-auto mb-12"
           >
             {[
-              { value: "50+", label: "Research Papers" },
-              { value: "15+", label: "Team Members" },
-              { value: "10+", label: "Active Projects" },
-            ].map((stat, index) => (
-              <div key={index} className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl blur-xl group-hover:blur-2xl transition-all" />
-                <div className="relative bg-white/60 dark:bg-gray-900/60 backdrop-blur-md p-6 rounded-xl border border-blue-200/50 dark:border-blue-900/50">
-                  <div className="bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
-                    {stat.value}
-                  </div>
-                  <div className="text-gray-600 dark:text-gray-400">
-                    {stat.label}
+              { value: heroStats?.publications || 0, label: "Research Papers", threshold: heroStats?.thresholds?.publications || 50 },
+              { value: heroStats?.team_members || 0, label: "Team Members", threshold: heroStats?.thresholds?.team || 15 },
+              { value: heroStats?.projects || 0, label: "Active Projects", threshold: heroStats?.thresholds?.projects || 10 },
+            ].map((stat, index) => {
+              const displayValue = stat.value >= stat.threshold ? `${stat.threshold}+` : stat.value.toString();
+              return (
+                <div key={index} className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl blur-xl group-hover:blur-2xl transition-all" />
+                  <div className="relative bg-white/60 dark:bg-gray-900/60 backdrop-blur-md p-6 rounded-xl border border-blue-200/50 dark:border-blue-900/50">
+                    <div className="bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
+                      {displayValue}
+                    </div>
+                    <div className="text-gray-600 dark:text-gray-400">
+                      {stat.label}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </motion.div>
 
           {/* CTA Buttons */}

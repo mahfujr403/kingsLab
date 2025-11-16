@@ -32,7 +32,7 @@ export function Hero() {
   // Fetch dynamic counts for publications, team members, projects
   const { data: heroStats } = useApi(
     () => api.getHeroStats(),
-    { publications: mockHeroData.stats.publications, team_members: mockHeroData.stats.members, projects: mockHeroData.stats.projects },
+    { publications: 0, team_members: 0, projects: 0, thresholds: { publications: 50, team: 15, projects: 10 } },
     'hero-stats'
   );
 
@@ -57,7 +57,8 @@ export function Hero() {
     labInfo: labInfo,
     labInfoFromAPI: !labInfoError,
     heroData: heroData,
-    heroDataFromAPI: !heroError
+    heroDataFromAPI: !heroError,
+    heroStats: heroStats
   });
 
   // Use lab info for title and description, hero data for background and stats
@@ -69,14 +70,15 @@ export function Hero() {
   const thresholds = heroStats?.thresholds || { publications: 50, team: 15, projects: 10 };
 
   const formatCount = (count: number, threshold: number) => {
+    // Only show threshold+ if count actually meets or exceeds it
     if (count >= threshold) return `${threshold}+`;
     return count.toString();
   };
 
   const stats = [
-    { icon: BrainCircuit, value: formatCount(heroStats.projects, thresholds.projects), label: "Active Projects" },
-    { icon: Users, value: formatCount(heroStats.team_members, thresholds.team), label: "Team Members" },
-    { icon: Award, value: formatCount(heroStats.publications, thresholds.publications), label: "Research Papers" }
+    { icon: BrainCircuit, value: formatCount(heroStats?.projects || 0, thresholds.projects), label: "Active Projects" },
+    { icon: Users, value: formatCount(heroStats?.team_members || 0, thresholds.team), label: "Team Members" },
+    { icon: Award, value: formatCount(heroStats?.publications || 0, thresholds.publications), label: "Research Papers" }
   ];
 
   return (
