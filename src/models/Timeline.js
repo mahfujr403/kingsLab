@@ -39,8 +39,8 @@ const timelineSchema = new mongoose.Schema({
     default: 0
   },
   date: {
-    type: Date,
-    required: [true, 'Date is required']
+    type: Date
+    // Not required - auto-generated from year/month in pre-save hook
   },
   created_at: {
     type: Date,
