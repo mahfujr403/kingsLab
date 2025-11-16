@@ -6,7 +6,8 @@ const {
   createTeamMember,
   updateTeamMember,
   deleteTeamMember,
-  uploadPhoto
+  uploadPhoto,
+  reorderTeamMembers
 } = require('../controllers/teamMemberController');
 const { protect } = require('../middleware/auth');
 const { teamMemberValidation, idValidation, validate } = require('../middleware/validator');
@@ -21,5 +22,6 @@ router.post('/admin/team-members', protect, upload.single('image'), createTeamMe
 router.put('/admin/team-members/:id', protect, idValidation, validate, upload.single('image'), updateTeamMember);
 router.delete('/admin/team-members/:id', protect, idValidation, validate, deleteTeamMember);
 router.post('/admin/team-members/:id/photo', protect, idValidation, validate, upload.single('photo'), uploadPhoto);
+router.patch('/admin/team-members/reorder', protect, reorderTeamMembers);
 
 module.exports = router;

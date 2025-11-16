@@ -217,3 +217,42 @@ exports.uploadPhoto = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc    Reorder team members
+// @route   PATCH /api/admin/team-members/reorder
+// @access  Private
+exports.reorderTeamMembers = async (req, res, next) => {
+  try {
+    let { items, ordered_ids } = req.body;
+
+    // Support both payload shapes: items[] or ordered_ids[]
+    if (!items && Array.isArray(ordered_ids)) {
+      items = ordered_ids.map((id, index) => ({ id, order: index }));
+    }
+
+    if (!Array.isArray(items)) {
+      return errorResponse(res, 'Payload must include items[] or ordered_ids[]', 400);
+    }
+
+    // Validate each item shape
+    for (const item of items) {
+      if (!item.id || typeof item.order !== 'number') {
+        return errorResponse(res, 'Each item must have id and numeric order', 400);
+      }
+    }
+
+    // Perform bulk updates in parallel
+    const updatePromises = items.map(item =>
+      TeamMember.findByIdAndUpdate(
+        item.id,
+        { order: item.order },
+        { new: true }
+      )
+    );
+    await Promise.all(updatePromises);
+
+    return successResponse(res, null, 'Team members reordered successfully');
+  } catch (error) {
+    next(error);
+  }
+};
