@@ -22,11 +22,18 @@ export function Hero() {
     "lab-info" // Add cache key to prevent repeated requests
   );
 
-  // Fetch hero data for background and stats
+  // Fetch hero data for background image & static fallback stats
   const { data: heroData, loading, error: heroError } = useApi<HeroData>(
     () => api.getHeroData(),
     mockHeroData,
-    "hero-data" // Add cache key to prevent repeated requests
+    "hero-data"
+  );
+
+  // Fetch dynamic counts for publications, team members, projects
+  const { data: heroStats } = useApi(
+    () => api.getHeroStats(),
+    { publications: mockHeroData.stats.publications, team_members: mockHeroData.stats.members, projects: mockHeroData.stats.projects },
+    'hero-stats'
   );
 
   const scrollToSection = (sectionId: string) => {
@@ -58,10 +65,18 @@ export function Hero() {
   const displaySubtitle = labInfo.tagline || heroData.subtitle;
   const displayDescription = labInfo.description || heroData.description;
 
+  // Thresholds for marketing style display (50+, 15+, 10+)
+  const thresholds = heroStats?.thresholds || { publications: 50, team: 15, projects: 10 };
+
+  const formatCount = (count: number, threshold: number) => {
+    if (count >= threshold) return `${threshold}+`;
+    return count.toString();
+  };
+
   const stats = [
-    { icon: BrainCircuit, value: heroData.stats.projects, label: "AI Projects" },
-    { icon: Users, value: heroData.stats.members, label: "Researchers" },
-    { icon: Award, value: heroData.stats.publications, label: "Publications" }
+    { icon: BrainCircuit, value: formatCount(heroStats.projects, thresholds.projects), label: "Active Projects" },
+    { icon: Users, value: formatCount(heroStats.team_members, thresholds.team), label: "Team Members" },
+    { icon: Award, value: formatCount(heroStats.publications, thresholds.publications), label: "Research Papers" }
   ];
 
   return (

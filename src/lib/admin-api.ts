@@ -164,12 +164,24 @@ export const getContactSubmissions = async () => {
     const error = await response.json().catch(() => ({ message: 'Failed to fetch contact submissions' }));
     throw new Error(error.message || 'Failed to fetch contact submissions');
   }
-  const data = await response.json();
-  return data.data || data;
+  const rawData = await response.json();
+  const data = rawData.data || rawData;
+  
+  // Normalize _id to id for MongoDB documents
+  const normalize = (items: any[]) => {
+    return items.map(item => {
+      if (item._id && !item.id) {
+        item.id = item._id;
+      }
+      return item;
+    });
+  };
+  
+  return Array.isArray(data) ? normalize(data) : data;
 };
 
 export const markSubmissionAsRead = async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/api/admin/contact-submissions/${id}/mark-read`, {
+  const response = await fetch(`${API_BASE_URL}/api/admin/contact-submissions/${id}/read`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
   });

@@ -141,6 +141,12 @@ class ApiClient {
     return this.fetch<HeroData>("/hero");
   }
 
+  // Public hero stats (lightweight counts)
+  async getHeroStats(): Promise<{ publications: number; team_members: number; projects: number; thresholds?: { publications: number; team: number; projects: number } }> {
+    // Route lives under /api/admin/hero-stats due to dashboard routing
+    return this.fetch('/admin/hero-stats');
+  }
+
   // Research Areas
   async getResearchAreas(): Promise<ResearchArea[]> {
     return this.fetch<ResearchArea[]>("/research-areas");
