@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { ExternalLink, Search, TrendingUp, BookOpen, Award, Calendar, Link as LinkIcon, Building2, Mail, Github, GraduationCap, Users, FileText, X, ArrowUpDown, Filter, FilterX, SlidersHorizontal, Download, Copy, Share2, BarChart3, Grid3x3, List, Eye, Quote, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { useApi } from "../hooks/useApi";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { api } from "../lib/api";
@@ -32,10 +32,11 @@ export function Publications() {
   const [selectedPublication, setSelectedPublication] = useState<Publication | null>(null);
   const [selectedAuthorProfile, setSelectedAuthorProfile] = useState<TeamMember | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const modalRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLElement>(null);
   
   // Focus trap for modal
-  useFocusTrap(modalRef, !!selectedPublication);
+  // Cast ref to satisfy hook typing expecting non-null HTMLElement
+  useFocusTrap(modalRef as unknown as React.RefObject<HTMLElement>, !!selectedPublication);
   
   const { data: allPublications, loading: pubLoading } = useApi<Publication[]>(
     () => api.getPublications(),
@@ -336,49 +337,8 @@ export function Publications() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-12 space-y-6"
         >
-          {/* Stats Badge and Search */}
-          <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-4 md:gap-6">
-            {/* Total Publications - Eye-catching vertical badge */}
-            <motion.div
-              whileHover={{ scale: 1.05, rotate: 2 }}
-              animate={{ 
-                boxShadow: [
-                  "0 0 20px rgba(59, 130, 246, 0.5)",
-                  "0 0 30px rgba(147, 51, 234, 0.6)",
-                  "0 0 20px rgba(59, 130, 246, 0.5)",
-                ]
-              }}
-              transition={{ 
-                boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" }
-              }}
-              className="bg-gradient-to-br from-blue-600 via-purple-600 to-blue-600 bg-[length:200%_200%] animate-gradient text-white rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center gap-2 md:gap-3 shadow-2xl md:row-span-2 relative overflow-hidden min-w-[100px] md:min-w-[140px]"
-            >
-              {/* Animated background glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-pink-400/20 animate-pulse"></div>
-              
-              {/* Content */}
-              <div className="relative z-10 flex flex-col items-center gap-2 md:gap-3">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                >
-                  <FileText className="h-7 w-7 md:h-10 md:w-10 drop-shadow-lg" />
-                </motion.div>
-                <div className="text-center">
-                  <motion.div 
-                    className="text-3xl md:text-5xl mb-1 drop-shadow-lg"
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  >
-                    {totalPublications}
-                  </motion.div>
-                  <div className="text-[10px] md:text-xs opacity-90 tracking-wide uppercase">Total<br/>Publications</div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Search and Filter Controls */}
-            <div className="space-y-4">
+          {/* Search and Filter Controls */}
+          <div className="space-y-4">
               {/* Search Bar */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" aria-hidden="true" />
@@ -438,7 +398,7 @@ export function Publications() {
                 </Select>
 
                 {/* Sort By */}
-                <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as SortOption)}>
                   <SelectTrigger className="w-[160px] bg-white dark:bg-gray-800" aria-label="Sort publications">
                     <ArrowUpDown className="h-4 w-4 mr-2" aria-hidden="true" />
                     <SelectValue placeholder="Sort" />
@@ -471,7 +431,7 @@ export function Publications() {
                 )}
               </div>
             </div>
-          </div>
+          {/* Removed stray closing div; keep content within motion container */}
 
           {/* Category Toggle Buttons */}
           <div className="flex flex-wrap gap-3 justify-center" role="group" aria-label="Filter by publication type">
@@ -512,13 +472,24 @@ export function Publications() {
               Book Chapter ({bookCount})
             </Button>
           </div>
-
           {/* Results Count and View Toggle */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Showing <span className="font-semibold text-blue-600 dark:text-blue-400">{filteredPublications.length}</span> of{" "}
-              <span className="font-semibold">{totalPublications}</span> publications
-            </p>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Showing <span className="font-semibold text-blue-600 dark:text-blue-400">{filteredPublications.length}</span> of{" "}
+                <span className="font-semibold">{totalPublications}</span> publications
+              </p>
+              
+              {/* Total Publications Badge - Compact version */}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" aria-hidden="true" />
+                <span className="font-semibold">{totalPublications}</span>
+                <span className="text-xs opacity-90">Total</span>
+              </motion.div>
+            </div>
             
             {/* View Mode Toggle */}
             <TooltipProvider>
@@ -931,7 +902,7 @@ export function Publications() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem 
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.preventDefault();
                             copyCitation('bibtex', selectedPublication);
                           }}
@@ -940,7 +911,7 @@ export function Publications() {
                           Copy BibTeX
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.preventDefault();
                             copyCitation('apa', selectedPublication);
                           }}
@@ -949,7 +920,7 @@ export function Publications() {
                           Copy APA
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={(e) => {
+                          onClick={(e: React.MouseEvent) => {
                             e.preventDefault();
                             copyCitation('mla', selectedPublication);
                           }}

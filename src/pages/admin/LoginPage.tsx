@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -113,12 +113,6 @@ export const LoginPage = () => {
             {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
-
-        {/* Demo Info */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-          <p className="text-xs text-gray-600 mb-2">Demo Credentials:</p>
-          <p className="text-xs text-gray-700 font-mono">admin@kingslab.ai / password</p>
-        </div>
       </div>
     </div>
   );
