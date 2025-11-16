@@ -175,13 +175,25 @@ exports.deleteResearchArea = async (req, res, next) => {
 // @access  Private
 exports.reorderResearchAreas = async (req, res, next) => {
   try {
-    const { items } = req.body; // Array of { id, order }
+    let { items, ordered_ids } = req.body;
 
-    if (!Array.isArray(items)) {
-      return errorResponse(res, 'Items must be an array', 400);
+    // Support legacy/new frontend payload shape
+    // Frontend currently sends { ordered_ids: [id1,id2,...] }
+    if (!items && Array.isArray(ordered_ids)) {
+      items = ordered_ids.map((id, index) => ({ id, order: index }));
     }
 
-    // Update all items
+    if (!Array.isArray(items)) {
+      return errorResponse(res, 'Payload must include items[] or ordered_ids[]', 400);
+    }
+
+    // Basic validation of item shape
+    for (const item of items) {
+      if (!item.id || typeof item.order !== 'number') {
+        return errorResponse(res, 'Each item must have id and numeric order', 400);
+      }
+    }
+
     const updatePromises = items.map(item =>
       ResearchArea.findByIdAndUpdate(
         item.id,
@@ -189,7 +201,6 @@ exports.reorderResearchAreas = async (req, res, next) => {
         { new: true }
       )
     );
-
     await Promise.all(updatePromises);
 
     return successResponse(res, null, 'Research areas reordered successfully');
