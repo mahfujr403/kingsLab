@@ -163,7 +163,7 @@ export const ResearchAreasManager: React.FC = () => {
 
     try {
       if (editingItem) {
-        await updateResearchArea(editingItem.id, formDataObj);
+        await updateResearchArea(Number(editingItem.id), formDataObj);
         toast.success('Research area updated successfully');
       } else {
         await createResearchArea(formDataObj);
@@ -211,7 +211,7 @@ export const ResearchAreasManager: React.FC = () => {
 
   const handleSaveOrder = async () => {
     try {
-      const orderedIds = researchAreas.map(area => area.id);
+      const orderedIds = researchAreas.map(area => Number(area.id));
       await reorderResearchAreas(orderedIds);
       toast.success('Research areas order saved successfully');
       setHasOrderChanged(false);
@@ -303,7 +303,7 @@ export const ResearchAreasManager: React.FC = () => {
             return (
               <DraggableCard
                 key={area.id}
-                id={area.id}
+                id={Number(area.id)}
                 index={index}
                 onMove={moveResearchArea}
                 isDragMode={isDragMode}
@@ -332,7 +332,7 @@ export const ResearchAreasManager: React.FC = () => {
                       <Button 
                         variant="secondary" 
                         size="sm" 
-                        onClick={() => handleDelete(area.id)}
+                        onClick={() => handleDelete(Number(area.id))}
                         className="bg-white/90 hover:bg-white shadow-lg text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -362,7 +362,7 @@ export const ResearchAreasManager: React.FC = () => {
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => handleDelete(area.id)}
+                        onClick={() => handleDelete(Number(area.id))}
                         className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="w-4 h-4" />

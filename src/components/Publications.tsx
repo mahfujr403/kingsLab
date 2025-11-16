@@ -66,8 +66,10 @@ export function Publications() {
     const authorSet = new Set<string>();
     publications.forEach(pub => {
       if (pub.author_ids && pub.author_ids.length > 0) {
-        pub.author_ids.forEach(id => {
-          const author = team.find(m => m.id === id);
+        pub.author_ids.forEach(entry => {
+          const rawId = typeof entry === 'string' ? entry : ((entry as any)?.id || (entry as any)?._id || '');
+          if (!rawId) return;
+          const author = team.find(m => m.id === rawId);
           if (author) authorSet.add(`${author.id}|${author.name}`);
         });
       }
@@ -93,8 +95,12 @@ export function Publications() {
       const matchesYear = selectedYear === "all" || pub.year === parseInt(selectedYear);
       
       // Author filter
-      const matchesAuthor = selectedAuthor === "all" || 
-                           (pub.author_ids && pub.author_ids.includes(parseInt(selectedAuthor.split('|')[0])));
+      const matchesAuthor = selectedAuthor === "all" || (
+        pub.author_ids && pub.author_ids.some(entry => {
+          const rawId = typeof entry === 'string' ? entry : ((entry as any)?.id || (entry as any)?._id || '');
+          return rawId === selectedAuthor.split('|')[0];
+        })
+      );
       
       return matchesSearch && matchesType && matchesYear && matchesAuthor;
     });
@@ -133,7 +139,7 @@ export function Publications() {
     setSelectedAuthor("all");
   };
 
-  const handleAuthorClick = (authorId: number) => {
+  const handleAuthorClick = (authorId: string) => {
     const author = team.find(m => m.id === authorId);
     if (author) {
       setSelectedAuthorProfile(author);
@@ -631,17 +637,17 @@ export function Publications() {
                   <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                     <Building2 className="h-4 w-4 shrink-0 text-violet-500 dark:text-violet-400" />
                     <span className="italic line-clamp-1">
-                      {pub.conference || pub.journal || pub.book_chapter || "Unpublished"}
+                      {pub.venue || "venue not provided"}
                     </span>
                   </div>
 
-                  {/* Citations */}
+                  {/* Citations / publisher */}
                   <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-700">
                     <div className="flex items-center gap-2">
                       <div className="bg-gradient-to-br from-violet-500 to-blue-600 text-white p-1.5 rounded-lg">
                         <TrendingUp className="h-3 w-3" />
                       </div>
-                      <span className="text-sm text-slate-600 dark:text-slate-400">{pub.citations} citations</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-400">{pub.citations ? `${pub.citations} citations` : pub.publisher}</span>
                     </div>
                     <motion.div
                       whileHover={{ scale: 1.1 }}
@@ -988,21 +994,30 @@ export function Publications() {
                     <span>Authors</span>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {selectedPublication.author_ids?.map((authorId) => {
-                      const author = team.find(m => m.id === authorId);
+                    {selectedPublication.author_ids?.map((entry: any) => {
+                      // Normalize possible id representations (number|string|object) into a number
+                      const rawId: string | null = (() => {
+                        if (typeof entry === 'number') return entry.toString();
+                        if (typeof entry === 'string') return entry;
+                        if (entry && (entry as any).id != null) return (entry as any).id.toString();
+                        if (entry && (entry as any)._id != null) return (entry as any)._id.toString();
+                        return null;
+                      })();
+                      const authorObj = rawId != null ? team.find(m => m.id === rawId) : undefined;
+                      const displayName = authorObj?.name || entry?.name || (typeof entry === 'string' ? entry : 'Unknown');
                       return (
                         <motion.button
-                          key={authorId}
+                          key={(rawId != null ? rawId : displayName) as any}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleAuthorClick(authorId);
+                            if (rawId != null) handleAuthorClick(rawId);
                           }}
                           className="bg-violet-100 dark:bg-violet-950/30 hover:bg-violet-200 dark:hover:bg-violet-900/40 text-violet-800 dark:text-violet-300 px-4 py-2 rounded-lg transition-colors cursor-pointer flex items-center gap-2"
                         >
                           <Users className="h-4 w-4" />
-                          {author?.name || "Unknown"}
+                          {displayName}
                         </motion.button>
                       );
                     })}

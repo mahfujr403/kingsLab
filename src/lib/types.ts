@@ -1,7 +1,7 @@
 // API Data Types for King's Lab
 
 export interface HeroData {
-  id: number;
+  id: string;
   title: string;
   subtitle: string;
   description: string;
@@ -14,7 +14,7 @@ export interface HeroData {
 }
 
 export interface ResearchArea {
-  id: number;
+  id: string;
   title: string;
   description: string;
   details: string;
@@ -25,7 +25,7 @@ export interface ResearchArea {
 }
 
 export interface TeamMember {
-  id: number;
+  id: string;
   name: string;
   role: string;
   bio: string;
@@ -49,10 +49,10 @@ export interface TeamMember {
 }
 
 export interface Publication {
-  id: number;
+  id: string;
   title: string;
   authors: string;
-  author_ids?: number[]; // IDs of team members who are authors
+  author_ids?: string[]; // Mongo ObjectIds of team members who are authors
   journal?: string;
   conference?: string;
   book_chapter?: string;
@@ -71,10 +71,11 @@ export interface Publication {
   issue?: string;
   publisher?: string;
   status?: 'draft' | 'published';
+  [key: string]: string | number | string[] | undefined; // Allow dynamic access to all property types
 }
 
 export interface ContactInfo {
-  id: number;
+  id: string;
   address: string;
   city: string;
   state: string;
@@ -84,7 +85,7 @@ export interface ContactInfo {
 }
 
 export interface SiteSettings {
-  id: number;
+  id: string;
   lab_name: string;
   tagline: string;
   about: string;
@@ -97,7 +98,7 @@ export interface SiteSettings {
 }
 
 export interface TimelineEvent {
-  id: number;
+  id: string;
   year: number;
   title: string;
   description: string;

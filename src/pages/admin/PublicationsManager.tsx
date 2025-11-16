@@ -253,18 +253,34 @@ export const PublicationsManager: React.FC = () => {
     e.preventDefault();
 
     const formDataObj = new FormData();
+    // Normalize publication type to match backend enum (lowercase, underscores)
+    const normalizePubType = (t: string) => {
+      const lower = t.toLowerCase();
+      if (lower === 'book chapter') return 'book_chapter';
+      if (lower === 'technical report') return 'technical_report';
+      if (lower === 'review paper') return 'review paper';
+      return lower; // conference, journal, workshop, preprint, book, thesis
+    };
     formDataObj.append('title', formData.title);
     formDataObj.append('authors', formData.authors);
+    // Append author_ids array (team member references) if we matched names to IDs
+    // Build mapping from teamMembers list
+    const nameToId: Record<string, string> = {};
+    teamMembers.forEach(m => { nameToId[m.name] = m.id; });
+    const authorIds = selectedAuthors.map(name => nameToId[name]).filter(Boolean);
+    authorIds.forEach(id => formDataObj.append('author_ids', id));
     if (formData.journal) formDataObj.append('journal', formData.journal);
     if (formData.conference) formDataObj.append('conference', formData.conference);
     if (formData.book_chapter) formDataObj.append('book_chapter', formData.book_chapter);
-    formDataObj.append('publication_type', formData.publication_type);
+    formDataObj.append('publication_type', normalizePubType(formData.publication_type));
     formDataObj.append('year', formData.year);
     formDataObj.append('citations', formData.citations);
     formDataObj.append('tag', formData.tag);
     formDataObj.append('category', formData.category);
     formDataObj.append('status', formData.status);
     if (formData.abstract) formDataObj.append('abstract', formData.abstract);
+    // Keywords: derive from tag plus explicit input (if added later) - currently use tag only
+    if (formData.tag) formDataObj.append('keywords', formData.tag);
     if (formData.url) formDataObj.append('url', formData.url);
     if (formData.event_photo) formDataObj.append('event_photo', formData.event_photo);
     if (formData.doi) formDataObj.append('doi', formData.doi);
@@ -283,7 +299,7 @@ export const PublicationsManager: React.FC = () => {
 
     try {
       if (editingItem) {
-        await updatePublication(editingItem.id, formDataObj);
+        await updatePublication(Number(editingItem.id), formDataObj);
         toast.success('Publication updated successfully');
       } else {
         await createPublication(formDataObj);
@@ -322,7 +338,7 @@ export const PublicationsManager: React.FC = () => {
     if (selectedIds.length === filteredAndSortedPublications.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filteredAndSortedPublications.map(p => p.id));
+      setSelectedIds(filteredAndSortedPublications.map(p => Number(p.id)));
     }
   };
 
@@ -369,7 +385,7 @@ export const PublicationsManager: React.FC = () => {
   const handlePreview = (item: Publication) => {
     // Convert formData to Publication format for preview
     const previewData: Publication = {
-      id: item.id || 0,
+      id: String(item.id || 0),
       title: item.title,
       authors: item.authors,
       journal: item.journal,
@@ -398,7 +414,7 @@ export const PublicationsManager: React.FC = () => {
   const handlePreviewFromForm = () => {
     // Create preview from current form data
     const previewData: Publication = {
-      id: editingItem?.id || 0,
+      id: String(editingItem?.id ?? 0),
       title: formData.title,
       authors: formData.authors,
       journal: formData.journal,
@@ -740,15 +756,15 @@ export const PublicationsManager: React.FC = () => {
           <div className="space-y-3 md:space-y-4">
             {filteredAndSortedPublications.map((pub) => (
               <Card key={pub.id} className={`p-4 md:p-6 hover:shadow-lg transition-all ${
-                selectedIds.includes(pub.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                selectedIds.includes(Number(pub.id)) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
               }`}>
                 <div className="flex gap-3 sm:gap-4">
                   {/* Checkbox in Select Mode */}
                   {isSelectMode && (
                     <div className="flex items-start pt-1">
                       <Checkbox
-                        checked={selectedIds.includes(pub.id)}
-                        onCheckedChange={() => toggleSelectItem(pub.id)}
+                        checked={selectedIds.includes(Number(pub.id))}
+                        onCheckedChange={() => toggleSelectItem(Number(pub.id))}
                         id={`select-${pub.id}`}
                       />
                     </div>
@@ -807,7 +823,7 @@ export const PublicationsManager: React.FC = () => {
                         <Pencil className="w-4 h-4 sm:mr-0" />
                         <span className="ml-2 sm:hidden">Edit</span>
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(pub.id)} className="flex-1 sm:flex-none">
+                      <Button variant="outline" size="sm" onClick={() => handleDelete(Number(pub.id))} className="flex-1 sm:flex-none">
                         <Trash2 className="w-4 h-4 sm:mr-0" />
                         <span className="ml-2 sm:hidden">Delete</span>
                       </Button>
