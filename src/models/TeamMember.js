@@ -40,6 +40,11 @@ const teamMemberSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // ResearchGate profile URL (was missing, add for social profiles)
+  researchgate: {
+    type: String,
+    trim: true
+  },
   google_scholar: {
     type: String,
     trim: true
@@ -60,6 +65,24 @@ const teamMemberSchema = new mongoose.Schema({
   is_alumni: {
     type: Boolean,
     default: false
+  },
+  // Alumni related metadata (added to support admin UI)
+  alumni_info: {
+    type: String,
+    trim: true
+  },
+  alumni_year: {
+    type: Number,
+    min: 1900,
+    max: 2100
+  },
+  current_position: {
+    type: String,
+    trim: true
+  },
+  affiliation: {
+    type: String,
+    trim: true
   },
   join_date: {
     type: Date

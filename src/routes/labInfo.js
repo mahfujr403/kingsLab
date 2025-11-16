@@ -11,14 +11,34 @@ router.get('/lab-info', async (req, res, next) => {
     
     if (!labInfo) {
       // Create default lab info if not exists
-      labInfo = await LabInfo.create({
-        lab_name: "King's Lab",
-        tagline: "Advancing Artificial Intelligence Research",
-        description: "A cutting-edge research laboratory",
-        email: "info@kingslab.ai"
-      });
+    //   labInfo = await LabInfo.create({
+    //     lab_name: "King's Lab",
+    //     tagline: "Advancing Artificial Intelligence Research",
+    //     description: "A cutting-edge research laboratory",
+    //     email: "info@kingslab.ai"
+    //   });
     }
     
+    return successResponse(res, labInfo);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// @route   GET /api/admin/lab-info
+router.get('/admin/lab-info', protect, async (req, res, next) => {
+  try {
+    let labInfo = await LabInfo.findOne();
+
+    // if (!labInfo) {
+    //   labInfo = await LabInfo.create({
+    //     lab_name: "King's Lab",
+    //     tagline: "Advancing Artificial Intelligence Research",
+    //     description: "A cutting-edge research laboratory",
+    //     email: "info@kingslab.ai"
+    //   });
+    // }
+
     return successResponse(res, labInfo);
   } catch (error) {
     next(error);
