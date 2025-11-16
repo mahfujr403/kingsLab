@@ -19,12 +19,12 @@ router.get('/publications/:id', idValidation, validate, getPublication);
 router.post('/admin/publications', protect, upload.fields([
   { name: 'certificate', maxCount: 1 },
   { name: 'event_photo_file', maxCount: 1 }
-]), createPublication);
+]), publicationValidation, validate, createPublication);
 
 router.put('/admin/publications/:id', protect, idValidation, validate, upload.fields([
   { name: 'certificate', maxCount: 1 },
   { name: 'event_photo_file', maxCount: 1 }
-]), updatePublication);
+]), publicationValidation, validate, updatePublication);
 
 router.delete('/admin/publications/:id', protect, idValidation, validate, deletePublication);
 

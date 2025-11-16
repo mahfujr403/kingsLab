@@ -99,6 +99,68 @@ exports.getPublication = async (req, res, next) => {
 exports.createPublication = async (req, res, next) => {
   try {
     const data = { ...req.body };
+
+    // Normalize publication_type (already validated) to lowercase
+    if (data.publication_type) {
+      data.publication_type = String(data.publication_type).toLowerCase();
+    }
+
+    // Map journal/conference/book_chapter fields to venue if provided
+    if (!data.venue) {
+      if (data.journal) data.venue = data.journal;
+      else if (data.conference) data.venue = data.conference;
+      else if (data.book_chapter) data.venue = data.book_chapter;
+    }
+
+    // Parse author_ids (may arrive as comma string or repeated form fields)
+    if (data.author_ids) {
+      if (typeof data.author_ids === 'string') {
+        // Comma or semicolon separated
+        data.author_ids = data.author_ids
+          .split(/[;,]/)
+          .map(s => s.trim())
+          .filter(Boolean);
+      } else if (Array.isArray(data.author_ids)) {
+        data.author_ids = data.author_ids.map(s => String(s).trim()).filter(Boolean);
+      }
+    } else {
+      data.author_ids = [];
+    }
+
+    // Build authors string from selectedAuthors if authors empty but author_ids provided (frontend sends names separately)
+    if ((!data.authors || !data.authors.trim()) && Array.isArray(data.author_ids)) {
+      // Fallback: attempt to resolve names from DB
+      const names = [];
+      for (const id of data.author_ids) {
+        const tm = await TeamMember.findById(id).select('name');
+        if (tm) names.push(tm.name);
+      }
+      if (names.length) {
+        data.authors = names.join(', ');
+      }
+    }
+
+    // Keywords: accept comma separated 'keywords' or single 'tag'
+    if (data.keywords) {
+      if (typeof data.keywords === 'string') {
+        data.keywords = data.keywords
+          .split(/[;,]/)
+          .map(k => k.trim())
+          .filter(Boolean);
+      }
+    } else {
+      data.keywords = [];
+    }
+    if (data.tag) {
+      // Ensure tag included in keywords for search purposes
+      if (!Array.isArray(data.keywords)) data.keywords = [];
+      if (!data.keywords.includes(data.tag)) data.keywords.push(data.tag);
+    }
+
+    // Map url field to pdf_url if pdf_url missing (frontend sends 'url')
+    if (data.url && !data.pdf_url) {
+      data.pdf_url = data.url;
+    }
     
     // Handle file uploads if provided
     if (req.files) {
@@ -134,6 +196,7 @@ exports.createPublication = async (req, res, next) => {
 
     return successResponse(res, populated, 'Publication created successfully', 201);
   } catch (error) {
+    console.error('CreatePublication Error:', error);
     next(error);
   }
 };
@@ -150,6 +213,44 @@ exports.updatePublication = async (req, res, next) => {
     }
     
     const data = { ...req.body };
+
+    if (data.publication_type) {
+      data.publication_type = String(data.publication_type).toLowerCase();
+    }
+
+    if (!data.venue) {
+      if (data.journal) data.venue = data.journal;
+      else if (data.conference) data.venue = data.conference;
+      else if (data.book_chapter) data.venue = data.book_chapter;
+    }
+
+    if (data.author_ids) {
+      if (typeof data.author_ids === 'string') {
+        data.author_ids = data.author_ids
+          .split(/[;,]/)
+          .map(s => s.trim())
+          .filter(Boolean);
+      } else if (Array.isArray(data.author_ids)) {
+        data.author_ids = data.author_ids.map(s => String(s).trim()).filter(Boolean);
+      }
+    }
+
+    if (data.keywords) {
+      if (typeof data.keywords === 'string') {
+        data.keywords = data.keywords
+          .split(/[;,]/)
+          .map(k => k.trim())
+          .filter(Boolean);
+      }
+    }
+    if (data.tag) {
+      if (!Array.isArray(data.keywords)) data.keywords = [];
+      if (!data.keywords.includes(data.tag)) data.keywords.push(data.tag);
+    }
+
+    if (data.url && !data.pdf_url) {
+      data.pdf_url = data.url;
+    }
     
     // Handle file uploads if provided
     if (req.files) {
@@ -202,6 +303,7 @@ exports.updatePublication = async (req, res, next) => {
 
     return successResponse(res, publication, 'Publication updated successfully');
   } catch (error) {
+    console.error('UpdatePublication Error:', error);
     next(error);
   }
 };

@@ -36,6 +36,20 @@ const publicationSchema = new mongoose.Schema({
     ],
     default: 'conference'
   },
+  // Additional classification fields used by frontend UI
+  category: {
+    type: String,
+    trim: true
+  },
+  status: {
+    type: String,
+    enum: ['draft', 'published'],
+    default: 'published'
+  },
+  tag: {
+    type: String,
+    trim: true
+  },
   venue: {
     type: String,
     // required: [true, 'Venue is required'],
@@ -50,6 +64,11 @@ const publicationSchema = new mongoose.Schema({
     trim: true
   },
   pdf_url: {
+    type: String,
+    trim: true
+  },
+  // Generic URL (frontend sends 'url'); map to pdf_url if needed but store separately
+  url: {
     type: String,
     trim: true
   },
@@ -73,6 +92,22 @@ const publicationSchema = new mongoose.Schema({
     type: Number,
     default: 0,
     min: 0
+  },
+  volume: {
+    type: String,
+    trim: true
+  },
+  issue: {
+    type: String,
+    trim: true
+  },
+  pages: {
+    type: String,
+    trim: true
+  },
+  publisher: {
+    type: String,
+    trim: true
   },
   keywords: [{
     type: String,

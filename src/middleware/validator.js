@@ -72,9 +72,30 @@ exports.publicationValidation = [
     .isIn(['journal', 'conference', 'workshop', 'book', 'book_chapter', 'preprint', 'thesis', 'technical_report'])
     .withMessage('Invalid publication type'),
   body('venue')
-    .trim()
-    .notEmpty()
-    .withMessage('Venue is required'),
+    .optional()
+    .trim(),
+  body('category')
+    .optional()
+    .trim(),
+  body('status')
+    .optional()
+    .isIn(['draft', 'published'])
+    .withMessage('Status must be draft or published'),
+  body('tag')
+    .optional()
+    .trim(),
+  body('volume')
+    .optional()
+    .trim(),
+  body('issue')
+    .optional()
+    .trim(),
+  body('pages')
+    .optional()
+    .trim(),
+  body('publisher')
+    .optional()
+    .trim(),
   body('citations')
     .optional()
     .isInt({ min: 0 })

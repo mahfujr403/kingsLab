@@ -5,7 +5,8 @@ module.exports = {
   MAX_LIMIT: 100,
 
   // File Upload
-  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'],
+  // Allow common image types plus PDF (needed for publication certificates)
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf'],
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
 
   // User Roles
