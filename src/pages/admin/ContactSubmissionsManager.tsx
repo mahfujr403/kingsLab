@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useConfirm } from '../../components/admin/ConfirmDialogProvider';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { AdminLoadingSpinner } from '../../components/admin/AdminLoadingSpinner';
 import { Button } from '../../components/ui/button';
@@ -53,8 +54,17 @@ export const ContactSubmissionsManager: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this submission?')) return;
+    const ok = await confirm({
+      title: 'Delete Submission',
+      description: 'Are you sure you want to delete this submission? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       await deleteContactSubmission(id);

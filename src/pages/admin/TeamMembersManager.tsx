@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useConfirm } from "../../components/admin/ConfirmDialogProvider";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AdminLayout } from "../../components/admin/AdminLayout";
@@ -270,13 +271,17 @@ export const TeamMembersManager: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (id: number) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this team member?",
-      )
-    )
-      return;
+    const ok = await confirm({
+      title: 'Delete Team Member',
+      description: 'Are you sure you want to delete this team member? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       await deleteTeamMember(id);
@@ -312,7 +317,14 @@ export const TeamMembersManager: React.FC = () => {
       return;
     }
 
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} team member(s)?`)) return;
+    const ok = await confirm({
+      title: 'Bulk Delete Team Members',
+      description: `Are you sure you want to delete ${selectedIds.length} team member(s)? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       await Promise.all(selectedIds.map(id => deleteTeamMember(id)));

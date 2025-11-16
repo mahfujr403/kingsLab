@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useConfirm } from '../../components/admin/ConfirmDialogProvider';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AdminLayout } from '../../components/admin/AdminLayout';
@@ -175,8 +176,17 @@ export const ResearchAreasManager: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this research area?')) return;
+    const ok = await confirm({
+      title: 'Delete Research Area',
+      description: 'Are you sure you want to delete this research area? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       await deleteResearchArea(id);

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useConfirm } from '../../components/admin/ConfirmDialogProvider';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { AdminLoadingSpinner } from '../../components/admin/AdminLoadingSpinner';
 import { RichTextEditor } from '../../components/admin/RichTextEditor';
@@ -296,8 +297,17 @@ export const PublicationsManager: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this publication?')) return;
+    const ok = await confirm({
+      title: 'Delete Publication',
+      description: 'Are you sure you want to delete this publication? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       await deletePublication(id);
@@ -331,7 +341,14 @@ export const PublicationsManager: React.FC = () => {
       return;
     }
 
-    if (!confirm(`Are you sure you want to delete ${selectedIds.length} publication(s)?`)) return;
+    const ok = await confirm({
+      title: 'Bulk Delete Publications',
+      description: `Are you sure you want to delete ${selectedIds.length} publication(s)? This action cannot be undone.`,
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       await Promise.all(selectedIds.map(id => deletePublication(id)));

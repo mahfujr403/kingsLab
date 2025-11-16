@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useConfirm } from '../components/admin/ConfirmDialogProvider';
 import { toast } from 'sonner@2.0.3';
 
 interface CrudOperations<T> {
@@ -41,13 +42,20 @@ export function useCrudOperations<T extends { id: number }>(
     setEditingItem(null);
   }, []);
 
+  const confirm = useConfirm();
+
   const handleDelete = useCallback(async (
-    id: number, 
+    id: number,
     deleteFunc: (id: number) => Promise<any>
   ) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) {
-      return;
-    }
+    const ok = await confirm({
+      title: 'Delete Item',
+      description: 'Are you sure you want to delete this item? This action cannot be undone.',
+      confirmLabel: 'Delete',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
+    if (!ok) return;
 
     try {
       await deleteFunc(id);
@@ -57,7 +65,7 @@ export function useCrudOperations<T extends { id: number }>(
       toast.error('Failed to delete item');
       console.error(error);
     }
-  }, [loadFunction]);
+  }, [loadFunction, confirm]);
 
   return {
     items,
