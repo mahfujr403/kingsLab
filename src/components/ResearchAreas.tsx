@@ -4,7 +4,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { Brain, Eye, MessageSquare, Cpu, Search, X, Grid3x3, LayoutGrid, ChevronDown, ChevronUp, Sparkles, BookOpen, Users, TrendingUp, Lightbulb, Zap, ArrowRight } from "lucide-react";
+import { Brain, Eye, MessageSquare, Cpu, Search, X, Grid3x3, LayoutGrid, ChevronDown, ChevronUp, Sparkles, BookOpen, Users, TrendingUp, Lightbulb, Zap, ArrowRight, Network, Target, Layers, CircuitBoard, Database, Globe, Microscope, ActivitySquare, Binary, Bot, Braces } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { motion, AnimatePresence } from "motion/react";
 import { useApi } from "../hooks/useApi";
@@ -16,7 +16,20 @@ const iconMap: Record<string, any> = {
   Brain,
   Eye,
   MessageSquare,
-  Cpu
+  Cpu,
+  Network,
+  Sparkles,
+  Zap,
+  Target,
+  Layers,
+  CircuitBoard,
+  Database,
+  Globe,
+  Microscope,
+  ActivitySquare,
+  Binary,
+  Bot,
+  Braces,
 };
 
 type ViewMode = "grid" | "compact";

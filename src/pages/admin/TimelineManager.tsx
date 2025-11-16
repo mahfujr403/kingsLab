@@ -14,7 +14,7 @@ import { Badge } from "../../components/ui/badge";
 import { AdminLoadingSpinner } from "../../components/admin/AdminLoadingSpinner";
 import { DraggableCard } from "../../components/admin/DraggableCard";
 import { Plus, Edit, Trash2, Calendar, Milestone, Award, BookOpen, TrendingUp, GripVertical, Image as ImageIcon, Save } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { api } from "../../lib/api";
 import { createTimelineEvent, updateTimelineEvent, deleteTimelineEvent, reorderTimelineEvents } from "../../lib/admin-api";
 import type { TimelineEvent } from "../../lib/types";
@@ -126,6 +126,7 @@ export function TimelineManager() {
       
       const submitData = new FormData();
       submitData.append("year", formData.year.toString());
+      submitData.append("month", "1"); // Default to January if month not specified
       submitData.append("title", formData.title);
       submitData.append("description", formData.description);
       submitData.append("category", formData.category);
@@ -453,7 +454,7 @@ export function TimelineManager() {
                 <Label htmlFor="category">Category *</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  onValueChange={(value: string) => setFormData({ ...formData, category: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
