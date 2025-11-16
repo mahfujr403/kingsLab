@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useConfirm } from '../../components/admin/ConfirmDialogProvider';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { AdminLoadingSpinner } from '../../components/admin/AdminLoadingSpinner';
-import { RichTextEditor } from '../../components/admin/RichTextEditor';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -13,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../../components/ui/checkbox';
 import { Badge } from '../../components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, FileText, CheckSquare, Square, Trash, Eye, ChevronDown, X, ChevronUp } from 'lucide-react';
 import { fetchPublications, fetchTeamMembers } from '../../lib/api';
 import { createPublication, updatePublication, deletePublication } from '../../lib/admin-api';
@@ -936,7 +935,7 @@ export const PublicationsManager: React.FC = () => {
                     <Label htmlFor="publication_type">Publication Type *</Label>
                     <Select 
                       value={formData.publication_type} 
-                      onValueChange={(value) => setFormData({ ...formData, publication_type: value })}
+                      onValueChange={(value: string) => setFormData({ ...formData, publication_type: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -955,7 +954,7 @@ export const PublicationsManager: React.FC = () => {
                     <Label htmlFor="category">Category *</Label>
                     <Select 
                       value={formData.category} 
-                      onValueChange={(value) => setFormData({ ...formData, category: value })}
+                      onValueChange={(value : string) => setFormData({ ...formData, category: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -997,7 +996,7 @@ export const PublicationsManager: React.FC = () => {
                     <Label htmlFor="tag">Tag</Label>
                     <Select 
                       value={formData.tag} 
-                      onValueChange={(value) => setFormData({ ...formData, tag: value })}
+                      onValueChange={(value : string) => setFormData({ ...formData, tag: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -1117,14 +1116,15 @@ export const PublicationsManager: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="abstract">Abstract</Label>
-                  <RichTextEditor
-                    content={formData.abstract}
-                    onChange={(content) => setFormData({ ...formData, abstract: content })}
+                  <Textarea
+                    id="abstract"
+                    value={formData.abstract}
+                    onChange={(e) => setFormData({ ...formData, abstract: e.target.value })}
                     placeholder="Brief description of the publication..."
-                    minHeight="200px"
+                    rows={8}
                   />
                   <p className="text-xs text-gray-500">
-                    Use formatting tools to create a structured abstract with proper formatting.
+                    Publication abstract. Plain text formatting will be preserved.
                   </p>
                 </div>
               </div>

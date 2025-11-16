@@ -6,7 +6,7 @@ import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Separator } from "./ui/separator";
-import { Mail, Linkedin, GraduationCap, BookOpen, ExternalLink, Github, FileText, Users, Calendar, Building2, TrendingUp, Award, Search, X, Filter, SlidersHorizontal, Grid3x3, List, User } from "lucide-react";
+import { Mail, Linkedin, GraduationCap, BookOpen, ExternalLink, Github, FileText, Users, Calendar, Building2, TrendingUp, Award, Search, X, Filter, SlidersHorizontal, Grid3x3, List, User, FlaskConical } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { motion, AnimatePresence } from "motion/react";
 import { useApi } from "../hooks/useApi";
@@ -42,7 +42,7 @@ export function TeamSection() {
     let filtered = teamMembers.filter(member => {
       const matchesSearch = member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            member.bio.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           member.expertise.some(e => e.toLowerCase().includes(searchTerm.toLowerCase()));
+                           (member.expertise && member.expertise.some(e => e.toLowerCase().includes(searchTerm.toLowerCase())));
       
       const matchesRole = roleFilter === "all" || 
                           member.role.toLowerCase().includes(roleFilter.toLowerCase());
@@ -260,6 +260,20 @@ export function TeamSection() {
                 <GraduationCap className="h-5 w-5" aria-hidden="true" />
               </motion.a>
             )}
+            {member.researchgate_url && (
+              <motion.a
+                href={member.researchgate_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileHover={{ scale: 1.2, y: -2 }}
+                whileTap={{ scale: 0.9 }}
+                className="text-slate-400 dark:text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+                aria-label={`View ${member.name}'s ResearchGate profile`}
+              >
+                <BookOpen className="h-5 w-5" aria-hidden="true" />
+              </motion.a>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -387,7 +401,7 @@ export function TeamSection() {
                       <label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">
                         Filter by Role
                       </label>
-                      <Select value={roleFilter} onValueChange={(value) => setRoleFilter(value as RoleFilter)}>
+                      <Select value={roleFilter} onValueChange={(value: string) => setRoleFilter(value as RoleFilter)}>
                         <SelectTrigger aria-label="Filter by role">
                           <SelectValue />
                         </SelectTrigger>
@@ -406,7 +420,7 @@ export function TeamSection() {
                       <label className="text-sm text-gray-700 dark:text-gray-300 mb-2 block">
                         Sort By
                       </label>
-                      <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+                      <Select value={sortBy} onValueChange={(value: string) => setSortBy(value as SortOption)}>
                         <SelectTrigger aria-label="Sort by">
                           <SelectValue />
                         </SelectTrigger>

@@ -5,7 +5,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AdminLayout } from "../../components/admin/AdminLayout";
 import { AdminLoadingSpinner } from "../../components/admin/AdminLoadingSpinner";
 import { DraggableCard } from '../../components/admin/DraggableCard';
-import { RichTextEditor } from '../../components/admin/RichTextEditor';
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -814,7 +813,7 @@ export const TeamMembersManager: React.FC = () => {
                           className="group/link flex items-center justify-center w-9 h-9 bg-gradient-to-br from-green-100 to-green-200 hover:from-green-500 hover:to-green-600 rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-110"
                           title="ResearchGate"
                         >
-                          <FileText className="w-4 h-4 text-green-600 group-hover/link:text-white transition-colors" />
+                          <BookOpen className="w-4 h-4 text-green-600 group-hover/link:text-white transition-colors" />
                         </a>
                       )}
 
@@ -933,19 +932,20 @@ export const TeamMembersManager: React.FC = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="bio">Biography *</Label>
-                  <RichTextEditor
-                    content={formData.bio}
-                    onChange={(content) =>
+                  <Textarea
+                    id="bio"
+                    value={formData.bio}
+                    onChange={(e) =>
                       setFormData({
                         ...formData,
-                        bio: content,
+                        bio: e.target.value,
                       })
                     }
                     placeholder="Brief professional biography..."
-                    minHeight="200px"
+                    rows={8}
                   />
                   <p className="text-xs text-gray-500">
-                    Use formatting tools to create a rich biography with headings, lists, and links.
+                    Professional biography text. Formatting will be preserved as plain text.
                   </p>
                 </div>
 
