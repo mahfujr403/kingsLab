@@ -31,10 +31,9 @@ export const OurJourney: React.FC = () => {
           api.getTimelineEvents(),
           api.getPublications()
         ]);
-        
-        // Filter only milestone events
-        const milestoneEvents = timelineData.filter(e => e.category === 'milestone');
-        setMilestones(milestoneEvents);
+
+        // Use all timeline events (not only milestones) so full journey shows DB data
+        setMilestones(timelineData);
         setPublications(publicationData);
       } catch (error) {
         console.warn('Failed to load data from API, using mock data:', error);
@@ -53,7 +52,7 @@ export const OurJourney: React.FC = () => {
     ...milestones.map(m => ({
       id: m.id,
       year: m.year,
-      type: 'milestone' as const,
+      type: m.category === 'publication' ? 'publication' : 'milestone',
       data: m
     })),
     ...publications.map(p => ({

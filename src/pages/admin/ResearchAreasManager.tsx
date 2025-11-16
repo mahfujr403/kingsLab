@@ -4,7 +4,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AdminLayout } from '../../components/admin/AdminLayout';
 import { AdminLoadingSpinner } from '../../components/admin/AdminLoadingSpinner';
 import { DraggableCard } from '../../components/admin/DraggableCard';
-import { RichTextEditor } from '../../components/admin/RichTextEditor';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
@@ -12,7 +11,7 @@ import { Textarea } from '../../components/ui/textarea';
 import { Card } from '../../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
 import { Badge } from '../../components/ui/badge';
-import { toast } from 'sonner@2.0.3';
+import { toast } from 'sonner';
 import { 
   Plus, 
   Pencil, 
@@ -436,15 +435,15 @@ export const ResearchAreasManager: React.FC = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="details">Detailed Description</Label>
-                <RichTextEditor
-                  content={formData.details}
-                  onChange={(content) => setFormData({ ...formData, details: content })}
+                <Textarea
+                  id="details"
+                  value={formData.details}
+                  onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                  rows={8}
                   placeholder="Detailed information about the research area, projects, and focus..."
-                  minHeight="250px"
+                  required
                 />
-                <p className="text-xs text-gray-500">
-                  Use the toolbar above to format your text with headings, lists, links, and more.
-                </p>
+                <p className="text-xs text-gray-500">Provide a plain text description. (Rich formatting disabled)</p>
               </div>
 
               <div className="space-y-2">

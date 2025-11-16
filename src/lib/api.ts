@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import type {
   HeroData,
   ResearchArea,
@@ -55,7 +56,8 @@ class ApiClient {
           if (response.status === 429) {
             console.warn(`⚠️ Rate limited on ${endpoint}. Please wait before retrying.`);
             const error: ApiError = {
-              message: "Too many requests. Please wait a moment and try again."
+              message: "Too many requests. Please wait a moment and try again.",
+              success: false
             };
             throw new Error(error.message);
           }
@@ -69,10 +71,48 @@ class ApiClient {
         }
 
         const rawData = await response.json();
-        
+
+        // Helper to inject `id` from `_id` for Mongo documents
+        const addId = (obj: any) => {
+          if (obj && typeof obj === 'object' && obj._id && !obj.id) {
+            obj.id = obj._id; // non-destructive alias
+          }
+          // Alias for team member image
+          if (obj && typeof obj === 'object' && obj.photo_url && !obj.image) {
+            obj.image = obj.photo_url;
+          }
+          // Social profile normalization: backend uses linkedin/github/google_scholar/researchgate
+          if (obj && typeof obj === 'object') {
+            if (obj.linkedin && !obj.linkedin_url) obj.linkedin_url = obj.linkedin;
+            if (obj.github && !obj.github_url) obj.github_url = obj.github;
+            if (obj.google_scholar && !obj.google_scholar_url) obj.google_scholar_url = obj.google_scholar;
+            if (obj.researchgate && !obj.researchgate_url) obj.researchgate_url = obj.researchgate;
+            // Default category for timeline events if missing
+            if (!obj.category && (obj.year && obj.title && obj.description)) {
+              obj.category = 'milestone';
+            }
+          }
+          // Alumni field normalization
+            if (obj && typeof obj === 'object') {
+              if (obj.alumni_year && typeof obj.alumni_year === 'number') {
+                obj.alumni_year = obj.alumni_year; // ensure accessible
+              }
+            }
+          return obj;
+        };
+
+        // Normalize returned data (array or single object)
+        const normalize = (value: any): any => {
+          if (Array.isArray(value)) return value.map(addId);
+          return addId(value);
+        };
+
         // Handle both wrapped and unwrapped responses
         const data: ApiResponse<T> = rawData;
-        return data.data ? data.data : rawData;
+        if (data && typeof data === 'object' && 'data' in data) {
+          return normalize(data.data);
+        }
+        return normalize(rawData);
       } catch (error) {
         // Only log in development or if it's not a network error
         if (import.meta.env.DEV || (error instanceof Error && !error.message.includes('Failed to fetch'))) {
@@ -148,8 +188,9 @@ class ApiClient {
     email: string;
     subject: string;
     message: string;
-  }): Promise<{ message: string }> {
-    return this.fetch<{ message: string }>("/contact", {
+  }): Promise<any> {
+    // Backend expects POST /api/contact-submissions
+    return this.fetch<any>("/contact-submissions", {
       method: "POST",
       body: JSON.stringify(data),
     });

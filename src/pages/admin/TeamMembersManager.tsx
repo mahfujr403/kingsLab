@@ -21,7 +21,7 @@ import { Badge } from "../../components/ui/badge";
 import { Separator } from "../../components/ui/separator";
 import { Switch } from "../../components/ui/switch";
 import { Checkbox } from "../../components/ui/checkbox";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import {
   Plus,
   Pencil,
@@ -134,18 +134,20 @@ export const TeamMembersManager: React.FC = () => {
           ? item.expertise.join(", ")
           : item.expertise || "",
         bio: item.bio,
-        education: item.education || "",
-        affiliation: item.affiliation || "",
+        education: Array.isArray(item.education)
+          ? item.education.join(", ")
+          : (item.education as unknown as string) || "",
+        affiliation: (item as any).affiliation || "",
         email: item.email || "",
         image: item.image,
-        linkedin_url: item.linkedin_url || "",
-        researchgate_url: item.researchgate_url || "",
-        github_url: item.github_url || "",
-        google_scholar_url: item.google_scholar_url || "",
-        is_alumni: item.is_alumni || false,
-        alumni_info: item.alumni_info || "",
-        alumni_year: item.alumni_year?.toString() || "",
-        current_position: item.current_position || "",
+        linkedin_url: (item as any).linkedin_url || (item as any).linkedin || "",
+        researchgate_url: (item as any).researchgate_url || (item as any).researchgate || "",
+        github_url: (item as any).github_url || (item as any).github || "",
+        google_scholar_url: (item as any).google_scholar_url || (item as any).google_scholar || "",
+        is_alumni: (item as any).is_alumni || false,
+        alumni_info: (item as any).alumni_info || "",
+        alumni_year: (item as any).alumni_year ? String((item as any).alumni_year) : "",
+        current_position: (item as any).current_position || "",
       });
       setImagePreview(item.image || '');
       setImageFile(null);
@@ -218,21 +220,33 @@ export const TeamMembersManager: React.FC = () => {
     const formDataObj = new FormData();
     formDataObj.append("name", formData.name);
     formDataObj.append("role", formData.role);
-    formDataObj.append("expertise", formData.expertise);
+    // Map expertise (comma-separated) to array expected by backend
+    const expArr = formData.expertise
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    expArr.forEach((val) => formDataObj.append("expertise[]", val));
+    // Biography
     formDataObj.append("bio", formData.bio);
-    formDataObj.append("education", formData.education);
-    formDataObj.append("affiliation", formData.affiliation);
-    formDataObj.append("email", formData.email);
-    formDataObj.append("linkedin_url", formData.linkedin_url);
-    formDataObj.append("researchgate_url", formData.researchgate_url);
-    formDataObj.append("github_url", formData.github_url);
-    formDataObj.append("google_scholar_url", formData.google_scholar_url);
-    formDataObj.append("publications_count", "0");
-    formDataObj.append("order", "1");
-    formDataObj.append("is_alumni", formData.is_alumni ? "1" : "0");
+    // Map education (comma-separated) to array
+    const eduArr = formData.education
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    eduArr.forEach((val) => formDataObj.append("education[]", val));
+    // Basic fields
+    if (formData.email) formDataObj.append("email", formData.email);
+    // Social links: map to backend field names
+    if (formData.linkedin_url) formDataObj.append("linkedin", formData.linkedin_url);
+    if (formData.github_url) formDataObj.append("github", formData.github_url);
+    if (formData.google_scholar_url) formDataObj.append("google_scholar", formData.google_scholar_url);
+    if (formData.researchgate_url) formDataObj.append("researchgate", formData.researchgate_url);
+    if (formData.affiliation) formDataObj.append("affiliation", formData.affiliation);
     if (formData.alumni_info) formDataObj.append("alumni_info", formData.alumni_info);
     if (formData.alumni_year) formDataObj.append("alumni_year", formData.alumni_year);
     if (formData.current_position) formDataObj.append("current_position", formData.current_position);
+    // Alumni flag (only boolean is supported on backend)
+    formDataObj.append("is_alumni", String(formData.is_alumni));
     
     // Append image file if selected
     if (imageFile) {
@@ -1162,7 +1176,7 @@ export const TeamMembersManager: React.FC = () => {
                   <Switch
                     id="is_alumni"
                     checked={formData.is_alumni}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       setFormData({
                         ...formData,
                         is_alumni: checked,

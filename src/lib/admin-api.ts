@@ -30,7 +30,6 @@ export const createResearchArea = async (data: FormData) => {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-      'Accept': 'application/json',
     },
     body: data,
   });
@@ -42,11 +41,12 @@ export const createResearchArea = async (data: FormData) => {
 };
 
 export const updateResearchArea = async (id: number, data: FormData) => {
+  // Note: Don't set Content-Type header - browser sets it automatically with boundary
   const response = await fetch(`${API_BASE_URL}/api/admin/research-areas/${id}`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-      'Accept': 'application/json',
+      // Content-Type is automatically set by browser for FormData
     },
     body: data,
   });
@@ -75,7 +75,6 @@ export const createTeamMember = async (data: FormData) => {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-      'Accept': 'application/json',
     },
     body: data,
   });
@@ -91,7 +90,6 @@ export const updateTeamMember = async (id: number, data: FormData) => {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-      'Accept': 'application/json',
     },
     body: data,
   });
@@ -120,7 +118,6 @@ export const createPublication = async (data: FormData) => {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-      'Accept': 'application/json',
     },
     body: data,
   });
@@ -136,7 +133,6 @@ export const updatePublication = async (id: number, data: FormData) => {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-      'Accept': 'application/json',
     },
     body: data,
   });
@@ -259,7 +255,6 @@ export const createTimelineEvent = async (data: FormData) => {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-      'Accept': 'application/json',
     },
     body: data,
   });
@@ -275,7 +270,6 @@ export const updateTimelineEvent = async (id: number, data: FormData) => {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-      'Accept': 'application/json',
     },
     body: data,
   });
