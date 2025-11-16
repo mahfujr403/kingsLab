@@ -5,6 +5,41 @@ const TeamMember = require('../models/TeamMember');
 const ContactSubmission = require('../models/ContactSubmission');
 const Timeline = require('../models/Timeline');
 
+// @desc    Public lightweight stats for hero section
+// @route   GET /api/hero-stats
+// @access  Public
+exports.getPublicHeroStats = async (req, res, next) => {
+  try {
+    const [
+      publicationsCount,
+      teamMembersCount,
+      researchAreasCount
+    ] = await Promise.all([
+      Publication.countDocuments(),
+      TeamMember.countDocuments({ is_alumni: false }),
+      ResearchArea.countDocuments(),
+    ]);
+
+    // Provide raw counts plus thresholds for marketing style "50+" etc.
+    const thresholds = {
+      publications: 50,
+      team: 15,
+      projects: 10,
+    };
+
+    const payload = {
+      publications: publicationsCount,
+      team_members: teamMembersCount,
+      projects: researchAreasCount, // treating research areas as active projects
+      thresholds,
+    };
+
+    return successResponse(res, payload, 'Hero stats retrieved successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/dashboard/stats
 // @access  Private

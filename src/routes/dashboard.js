@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const { getPublicHeroStats } = require('../controllers/dashboardController');
 const { successResponse } = require('../utils/apiResponse');
 const ResearchArea = require('../models/ResearchArea');
 const Publication = require('../models/Publication');
@@ -82,5 +83,8 @@ router.get('/dashboard/stats', protect, async (req, res, next) => {
     next(error);
   }
 });
+
+// Public hero stats (no auth)
+router.get('/hero-stats', getPublicHeroStats);
 
 module.exports = router;
