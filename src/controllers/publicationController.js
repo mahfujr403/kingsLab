@@ -105,13 +105,6 @@ exports.createPublication = async (req, res, next) => {
       data.publication_type = String(data.publication_type).toLowerCase();
     }
 
-    // Map journal/conference/book_chapter fields to venue if provided
-    if (!data.venue) {
-      if (data.journal) data.venue = data.journal;
-      else if (data.conference) data.venue = data.conference;
-      else if (data.book_chapter) data.venue = data.book_chapter;
-    }
-
     // Parse author_ids (may arrive as comma string or repeated form fields)
     if (data.author_ids) {
       if (typeof data.author_ids === 'string') {
@@ -155,6 +148,25 @@ exports.createPublication = async (req, res, next) => {
       // Ensure tag included in keywords for search purposes
       if (!Array.isArray(data.keywords)) data.keywords = [];
       if (!data.keywords.includes(data.tag)) data.keywords.push(data.tag);
+    }
+
+    // Extract categories (new array support with backward compatibility)
+    const extractCategories = (payload) => {
+      if (Array.isArray(payload.categories)) {
+        return payload.categories.map(c => String(c).trim()).filter(Boolean);
+      }
+      if (typeof payload.category === 'string') {
+        return payload.category.split(',').map(c => c.trim()).filter(Boolean);
+      }
+      return [];
+    };
+    const categoriesArray = extractCategories(data);
+    if (categoriesArray.length) {
+      data.categories = categoriesArray;
+      // Ensure legacy single string present for backward compatibility
+      if (!data.category || !data.category.trim()) {
+        data.category = categoriesArray.join(', ');
+      }
     }
 
     // Map url field to pdf_url if pdf_url missing (frontend sends 'url')
@@ -218,12 +230,6 @@ exports.updatePublication = async (req, res, next) => {
       data.publication_type = String(data.publication_type).toLowerCase();
     }
 
-    if (!data.venue) {
-      if (data.journal) data.venue = data.journal;
-      else if (data.conference) data.venue = data.conference;
-      else if (data.book_chapter) data.venue = data.book_chapter;
-    }
-
     if (data.author_ids) {
       if (typeof data.author_ids === 'string') {
         data.author_ids = data.author_ids
@@ -246,6 +252,24 @@ exports.updatePublication = async (req, res, next) => {
     if (data.tag) {
       if (!Array.isArray(data.keywords)) data.keywords = [];
       if (!data.keywords.includes(data.tag)) data.keywords.push(data.tag);
+    }
+
+    // Extract categories (new array support with backward compatibility)
+    const extractCategories = (payload) => {
+      if (Array.isArray(payload.categories)) {
+        return payload.categories.map(c => String(c).trim()).filter(Boolean);
+      }
+      if (typeof payload.category === 'string') {
+        return payload.category.split(',').map(c => c.trim()).filter(Boolean);
+      }
+      return [];
+    };
+    const categoriesArray = extractCategories(data);
+    if (categoriesArray.length) {
+      data.categories = categoriesArray;
+      if (!data.category || !data.category.trim()) {
+        data.category = categoriesArray.join(', ');
+      }
     }
 
     if (data.url && !data.pdf_url) {

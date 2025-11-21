@@ -72,11 +72,19 @@ exports.publicationValidation = [
     .isIn(['journal', 'conference', 'workshop', 'book', 'book_chapter', 'preprint', 'thesis', 'technical_report'])
     .withMessage('Invalid publication type'),
   body('venue')
-    .optional()
-    .trim(),
+    .trim()
+    .notEmpty()
+    .withMessage('Venue is required'),
   body('category')
     .optional()
     .trim(),
+  body('categories')
+    .optional()
+    .isArray({ min: 1 })
+    .withMessage('Categories must be an array')
+    .bail()
+    .custom(arr => arr.every(c => typeof c === 'string' && c.trim().length > 0))
+    .withMessage('Each category must be a non-empty string'),
   body('status')
     .optional()
     .isIn(['draft', 'published'])

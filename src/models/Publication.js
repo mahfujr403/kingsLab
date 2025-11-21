@@ -41,6 +41,11 @@ const publicationSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  // New multi-category support (array of category strings)
+  categories: [{
+    type: String,
+    trim: true
+  }],
   status: {
     type: String,
     enum: ['draft', 'published'],
@@ -52,7 +57,7 @@ const publicationSchema = new mongoose.Schema({
   },
   venue: {
     type: String,
-    // required: [true, 'Venue is required'],
+    required: [true, 'Venue is required'],
     trim: true
   },
   abstract: {
@@ -135,6 +140,39 @@ publicationSchema.index({ author_ids: 1 });
 // Virtual for formatted authors
 publicationSchema.virtual('formatted_authors').get(function() {
   return this.authors.split(',').map(a => a.trim());
+});
+
+// Synchronize legacy single category string with new categories array
+publicationSchema.pre('save', function(next) {
+  // If categories array empty but legacy category string present, populate array
+  if ((!this.categories || this.categories.length === 0) && this.category) {
+    this.categories = this.category.split(',').map(c => c.trim()).filter(Boolean);
+  }
+  // If categories array exists and legacy category string missing or empty, derive single string
+  if (this.categories && this.categories.length > 0) {
+    if (!this.category || !this.category.trim()) {
+      this.category = this.categories.join(', ');
+    }
+  }
+  next();
+});
+
+// Keep both in sync on update operations that use findOneAndUpdate
+publicationSchema.pre('findOneAndUpdate', function(next) {
+  const update = this.getUpdate() || {};
+  let categories = update.categories;
+  let category = update.category;
+  if (!categories && category && typeof category === 'string') {
+    categories = category.split(',').map(c => c.trim()).filter(Boolean);
+    update.categories = categories;
+  }
+  if (Array.isArray(categories) && categories.length > 0) {
+    if (!category || !String(category).trim()) {
+      update.category = categories.join(', ');
+    }
+  }
+  this.setUpdate(update);
+  next();
 });
 
 module.exports = mongoose.model('Publication', publicationSchema);
