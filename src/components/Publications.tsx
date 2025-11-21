@@ -100,7 +100,7 @@ export function Publications() {
                 placeholder="Search publications..."
                 value={searchTerm}
                 onChange={(e)=>setSearchTerm(e.target.value)}
-                className="pl-9"
+                className="pl-10"
               />
             </div>
             <Select value={selectedType} onValueChange={setSelectedType}>
