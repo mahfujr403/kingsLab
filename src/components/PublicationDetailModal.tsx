@@ -6,7 +6,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { ExternalLink, TrendingUp, BookOpen, Award, Calendar, Link as LinkIcon, Building2, Users, FileText, Quote, Sparkles, Copy, Share2 } from "lucide-react";
+import { ExternalLink, TrendingUp, BookOpen, Award, Calendar, Link as LinkIcon, Building2, Users, FileText, Quote, Sparkles, Copy, Share2, Edit, Search, CheckCircle, Mic, CheckCheck } from "lucide-react";
 import { motion } from "motion/react";
 import { toast } from "sonner";
 import { useFocusTrap } from "../hooks/useFocusTrap";
@@ -78,6 +78,38 @@ export function PublicationDetailModal({
 
   if (!publication) return null;
 
+  const getStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'draft':
+        return <Edit className="h-4 w-4" />;
+      case 'on_review':
+        return <Search className="h-4 w-4" />;
+      case 'accepted':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'presented':
+        return <Mic className="h-4 w-4" />;
+      case 'published':
+      default:
+        return <CheckCheck className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusText = (status?: string) => {
+    switch (status) {
+      case 'draft':
+        return 'Draft';
+      case 'on_review':
+        return 'On Review';
+      case 'accepted':
+        return 'Accepted';
+      case 'presented':
+        return 'Presented';
+      case 'published':
+      default:
+        return 'Published';
+    }
+  };
+
   const relatedPublications = getRelatedPublications(publication);
 
   return (
@@ -94,7 +126,11 @@ export function PublicationDetailModal({
                 {publication.title}
               </DialogTitle>
               <DialogDescription id="publication-description" className="mt-2 text-slate-600 dark:text-slate-400">
-                Published in {publication.year} · {publication.citations} citations
+                Published in {publication.year} · {publication.citations} citations · 
+                <span className="inline-flex items-center gap-1 ml-1">
+                  {getStatusIcon(publication.status)}
+                  {getStatusText(publication.status)}
+                </span>
               </DialogDescription>
             </div>
             <div className="flex items-center gap-2">
