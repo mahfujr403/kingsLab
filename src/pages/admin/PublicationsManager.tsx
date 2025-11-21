@@ -17,7 +17,6 @@ import { Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, FileText, CheckSquar
 import { fetchPublications, fetchTeamMembers } from '../../lib/api';
 import { createPublication, updatePublication, deletePublication } from '../../lib/admin-api';
 import { Publication, TeamMember } from '../../lib/types';
-import { mockPublications, mockTeamMembers } from '../../lib/mock-data';
 import { PublicationPreview } from '../../components/admin/PreviewModal';
 
 export const PublicationsManager: React.FC = () => {
@@ -49,14 +48,12 @@ export const PublicationsManager: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     authors: '',
-    journal: '',
-    conference: '',
-    book_chapter: '',
-    publication_type: 'Conference',
+    venue: '',
+    publication_type: 'conference',
     year: new Date().getFullYear().toString(),
     citations: '0',
     tag: 'Recent',
-    category: 'Deep Learning',
+    category: 'Deep Learning', // comma separated categories string for backend
     abstract: '',
     url: '',
     certificate_url: '',
@@ -86,9 +83,8 @@ export const PublicationsManager: React.FC = () => {
       setPublications(pubsData);
       setTeamMembers(membersData);
     } catch (error) {
-      console.log('API failed, using mock data:', error);
-      setPublications(mockPublications);
-      setTeamMembers(mockTeamMembers);
+      console.error('Failed to load data:', error);
+      toast.error('Failed to load data from database');
     } finally {
       setIsLoading(false);
     }
@@ -99,9 +95,30 @@ export const PublicationsManager: React.FC = () => {
       const data = await fetchPublications();
       setPublications(data);
     } catch (error) {
-      console.log('API failed, using mock data:', error);
-      setPublications(mockPublications);
+      console.error('Failed to load publications:', error);
+      toast.error('Failed to load publications from database');
     }
+  };
+
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Deep Learning']);
+
+  const allCategories = [
+    'Deep Learning',
+    'Computer Vision',
+    'NLP',
+    'Reinforcement Learning',
+    'Robotics',
+    'Healthcare AI',
+    'Generative Models',
+    'Edge AI'
+  ];
+
+  const toggleCategory = (cat: string) => {
+    setSelectedCategories(prev => {
+      const next = prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat];
+      setFormData(fd => ({ ...fd, category: next.join(', ') }));
+      return next;
+    });
   };
 
   const handleOpenDialog = (item?: Publication) => {
@@ -110,18 +127,21 @@ export const PublicationsManager: React.FC = () => {
       // Parse authors string to array
       const authorsArray = Array.isArray(item.authors) ? item.authors : item.authors.split(',').map(a => a.trim());
       setSelectedAuthors(authorsArray);
+      const existingCats = (item.category || 'Deep Learning')
+        .split(',')
+        .map(c => c.trim())
+        .filter(Boolean);
+      setSelectedCategories(existingCats.length ? existingCats : ['Deep Learning']);
       
       setFormData({
         title: item.title,
         authors: Array.isArray(item.authors) ? item.authors.join(', ') : item.authors,
-        journal: item.journal || '',
-        conference: item.conference || '',
-        book_chapter: item.book_chapter || '',
-        publication_type: item.publication_type || 'Conference',
+        venue: item.venue || '',
+        publication_type: item.publication_type || 'conference',
         year: item.year.toString(),
         citations: item.citations?.toString() || '0',
         tag: item.tag || 'Recent',
-        category: item.category || 'Deep Learning',
+        category: existingCats.join(', '),
         abstract: item.abstract || '',
         url: item.url || '',
         certificate_url: item.certificate_url || '',
@@ -140,13 +160,12 @@ export const PublicationsManager: React.FC = () => {
     } else {
       setEditingItem(null);
       setSelectedAuthors([]);
+      setSelectedCategories(['Deep Learning']);
       setFormData({
         title: '',
         authors: '',
-        journal: '',
-        conference: '',
-        book_chapter: '',
-        publication_type: 'Conference',
+        venue: '',
+        publication_type: 'conference',
         year: new Date().getFullYear().toString(),
         citations: '0',
         tag: 'Recent',
@@ -269,9 +288,7 @@ export const PublicationsManager: React.FC = () => {
     teamMembers.forEach(m => { nameToId[m.name] = m.id; });
     const authorIds = selectedAuthors.map(name => nameToId[name]).filter(Boolean);
     authorIds.forEach(id => formDataObj.append('author_ids', id));
-    if (formData.journal) formDataObj.append('journal', formData.journal);
-    if (formData.conference) formDataObj.append('conference', formData.conference);
-    if (formData.book_chapter) formDataObj.append('book_chapter', formData.book_chapter);
+    if (formData.venue) formDataObj.append('venue', formData.venue);
     formDataObj.append('publication_type', normalizePubType(formData.publication_type));
     formDataObj.append('year', formData.year);
     formDataObj.append('citations', formData.citations);
@@ -299,7 +316,7 @@ export const PublicationsManager: React.FC = () => {
 
     try {
       if (editingItem) {
-        await updatePublication(Number(editingItem.id), formDataObj);
+        await updatePublication(editingItem.id, formDataObj);
         toast.success('Publication updated successfully');
       } else {
         await createPublication(formDataObj);
@@ -314,7 +331,7 @@ export const PublicationsManager: React.FC = () => {
 
   const confirm = useConfirm();
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     const ok = await confirm({
       title: 'Delete Publication',
       description: 'Are you sure you want to delete this publication? This action cannot be undone.',
@@ -366,7 +383,7 @@ export const PublicationsManager: React.FC = () => {
     if (!ok) return;
 
     try {
-      await Promise.all(selectedIds.map(id => deletePublication(id)));
+      await Promise.all(selectedIds.map(id => deletePublication(id.toString())));
       toast.success(`${selectedIds.length} publication(s) deleted successfully`);
       setSelectedIds([]);
       setIsSelectMode(false);
@@ -388,9 +405,7 @@ export const PublicationsManager: React.FC = () => {
       id: String(item.id || 0),
       title: item.title,
       authors: item.authors,
-      journal: item.journal,
-      conference: item.conference,
-      book_chapter: item.book_chapter,
+      venue: item.venue,
       publication_type: item.publication_type,
       year: item.year,
       citations: item.citations,
@@ -417,9 +432,7 @@ export const PublicationsManager: React.FC = () => {
       id: String(editingItem?.id ?? 0),
       title: formData.title,
       authors: formData.authors,
-      journal: formData.journal,
-      conference: formData.conference,
-      book_chapter: formData.book_chapter,
+      venue: formData.venue,
       publication_type: formData.publication_type,
       year: parseInt(formData.year),
       citations: parseInt(formData.citations),
@@ -450,8 +463,7 @@ export const PublicationsManager: React.FC = () => {
         pub.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pub.authors.toLowerCase().includes(searchTerm.toLowerCase()) ||
         pub.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pub.conference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        pub.journal?.toLowerCase().includes(searchTerm.toLowerCase())
+        pub.venue?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -797,10 +809,10 @@ export const PublicationsManager: React.FC = () => {
                       {Array.isArray(pub.authors) ? pub.authors.join(', ') : pub.authors}
                     </p>
                     <p className="text-gray-600 text-xs md:text-sm mb-2">
-                      {pub.journal || pub.conference || pub.book_chapter} • {pub.year}
+                      {pub.venue} • {pub.year}
                     </p>
                     <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-2">
-                      {pub.citations !== undefined && (
+                     {pub.citations && Number(pub.citations) > 0 && (
                         <span className="flex items-center gap-1">
                           📊 {pub.citations} citations
                         </span>
@@ -823,7 +835,7 @@ export const PublicationsManager: React.FC = () => {
                         <Pencil className="w-4 h-4 sm:mr-0" />
                         <span className="ml-2 sm:hidden">Edit</span>
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDelete(Number(pub.id))} className="flex-1 sm:flex-none">
+                      <Button variant="outline" size="sm" onClick={() => handleDelete(pub.id)} className="flex-1 sm:flex-none">
                         <Trash2 className="w-4 h-4 sm:mr-0" />
                         <span className="ml-2 sm:hidden">Delete</span>
                       </Button>
@@ -957,32 +969,66 @@ export const PublicationsManager: React.FC = () => {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Conference">Conference</SelectItem>
-                        <SelectItem value="Journal">Journal</SelectItem>
-                        <SelectItem value="Book Chapter">Book Chapter</SelectItem>
-                        <SelectItem value="Workshop">Workshop</SelectItem>
-                        <SelectItem value="Preprint">Preprint</SelectItem>
+                        <SelectItem value="conference">Conference</SelectItem>
+                        <SelectItem value="journal">Journal</SelectItem>
+                        <SelectItem value="book_chapter">Book Chapter</SelectItem>
+                        <SelectItem value="workshop">Workshop</SelectItem>
+                        <SelectItem value="preprint">Preprint</SelectItem>
+                        <SelectItem value="book">Book</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category *</Label>
-                    <Select 
-                      value={formData.category} 
-                      onValueChange={(value : string) => setFormData({ ...formData, category: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Deep Learning">Deep Learning</SelectItem>
-                        <SelectItem value="Computer Vision">Computer Vision</SelectItem>
-                        <SelectItem value="NLP">NLP</SelectItem>
-                        <SelectItem value="Reinforcement Learning">Reinforcement Learning</SelectItem>
-                        <SelectItem value="Robotics">Robotics</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label>Categories *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" type="button" className="w-full justify-between">
+                          <span className="text-gray-600 line-clamp-1">
+                            {selectedCategories.length ? selectedCategories.join(', ') : 'Select categories'}
+                          </span>
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-72 p-0" align="start">
+                        <div className="max-h-[260px] overflow-y-auto">
+                          {allCategories.map(cat => (
+                            <button
+                              type="button"
+                              key={cat}
+                              onClick={() => toggleCategory(cat)}
+                              className={`w-full flex items-center gap-2 p-2 text-left text-sm hover:bg-gray-100 ${selectedCategories.includes(cat) ? 'bg-violet-50' : ''}`}
+                            >
+                              <Checkbox checked={selectedCategories.includes(cat)} />
+                              <span className="flex-1">{cat}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <div className="border-t p-2 flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => {
+                              setSelectedCategories([]);
+                              setFormData(fd => ({ ...fd, category: '' }));
+                            }}
+                          >Clear</Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => {
+                              if (!selectedCategories.length) {
+                                setSelectedCategories(['Deep Learning']);
+                                setFormData(fd => ({ ...fd, category: 'Deep Learning' }));
+                              }
+                              setIsDialogOpen(true); // keep open state
+                            }}
+                          >Done</Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <p className="text-xs text-gray-500">You can select multiple categories. Stored as comma separated string.</p>
                   </div>
                 </div>
 
@@ -1032,33 +1078,25 @@ export const PublicationsManager: React.FC = () => {
                 <h3 className="text-sm font-medium text-gray-900 border-b pb-2">Venue Information</h3>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="conference">Conference</Label>
+                  <Label htmlFor="venue">
+                    Venue * (Conference Name / Journal Name / Book Chapter)
+                  </Label>
                   <Input
-                    id="conference"
-                    value={formData.conference}
-                    onChange={(e) => setFormData({ ...formData, conference: e.target.value })}
-                    placeholder="e.g., NeurIPS 2024"
+                    id="venue"
+                    value={formData.venue}
+                    onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                    placeholder={
+                      formData.publication_type === 'conference' || formData.publication_type === 'Conference'
+                        ? 'e.g., NeurIPS 2024' 
+                        : formData.publication_type === 'journal' || formData.publication_type === 'Journal'
+                        ? 'e.g., IEEE Transactions on Robotics'
+                        : 'e.g., The Handbook of Natural Language Processing'
+                    }
+                    required
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="journal">Journal</Label>
-                  <Input
-                    id="journal"
-                    value={formData.journal}
-                    onChange={(e) => setFormData({ ...formData, journal: e.target.value })}
-                    placeholder="e.g., IEEE Transactions on Robotics"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="book_chapter">Book Chapter</Label>
-                  <Input
-                    id="book_chapter"
-                    value={formData.book_chapter}
-                    onChange={(e) => setFormData({ ...formData, book_chapter: e.target.value })}
-                    placeholder="e.g., The Handbook of Natural Language Processing"
-                  />
+                  <p className="text-xs text-gray-500">
+                    Enter the {formData.publication_type.toLowerCase()} name where this work was published
+                  </p>
                 </div>
 
                 <div className="space-y-2">

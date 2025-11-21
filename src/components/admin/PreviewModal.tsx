@@ -60,7 +60,7 @@ export const PublicationPreview: React.FC<PublicationPreviewProps> = ({ publicat
             </div>
 
             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-              <span>{publication.journal || publication.conference || publication.book_chapter}</span>
+              <span>{publication.venue}</span>
               <span>•</span>
               <span>{publication.year}</span>
               {publication.citations !== undefined && (

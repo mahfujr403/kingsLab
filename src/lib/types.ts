@@ -53,14 +53,13 @@ export interface Publication {
   title: string;
   authors: string;
   author_ids?: string[]; // Mongo ObjectIds of team members who are authors
-  journal?: string;
-  conference?: string;
-  book_chapter?: string;
-  publication_type: string; // "Journal", "Conference", "Book Chapter", etc.
+  venue: string; // Conference/Journal/Book Chapter name based on publication_type
+  publication_type: string; // "journal", "conference", "book_chapter", etc.
   year: number;
   citations: number;
   tag: string;
   category: string;
+  categories?: string[]; // New multi-category support
   abstract?: string;
   url?: string;
   certificate_url?: string;

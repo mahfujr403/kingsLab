@@ -128,7 +128,7 @@ export const createPublication = async (data: FormData) => {
   return response.json();
 };
 
-export const updatePublication = async (id: number, data: FormData) => {
+export const updatePublication = async (id: string, data: FormData) => {
   const response = await fetch(`${API_BASE_URL}/api/admin/publications/${id}`, {
     method: 'PUT',
     headers: {
@@ -143,7 +143,7 @@ export const updatePublication = async (id: number, data: FormData) => {
   return response.json();
 };
 
-export const deletePublication = async (id: number) => {
+export const deletePublication = async (id: string) => {
   const response = await fetch(`${API_BASE_URL}/api/admin/publications/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
