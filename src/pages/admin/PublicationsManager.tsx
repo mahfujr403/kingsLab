@@ -899,12 +899,20 @@ export const PublicationsManager: React.FC = () => {
                     {selectedAuthors.length > 0 && (
                       <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-gray-50">
                         {selectedAuthors.map((author) => (
-                          <Badge key={author} variant="secondary" className="gap-1">
-                            {author}
-                            <X 
-                              className="w-3 h-3 cursor-pointer hover:text-red-600" 
-                              onClick={() => removeAuthor(author)}
-                            />
+                          <Badge key={author} variant="secondary" className="gap-1 pr-1">
+                            <span>{author}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                removeAuthor(author);
+                              }}
+                              className="ml-1 hover:bg-red-100 rounded-full p-0.5 transition-colors"
+                              aria-label={`Remove ${author}`}
+                            >
+                              <X className="w-3 h-3 text-gray-600 hover:text-red-600" />
+                            </button>
                           </Badge>
                         ))}
                       </div>
