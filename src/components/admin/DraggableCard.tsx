@@ -4,7 +4,7 @@ import { GripVertical } from 'lucide-react';
 import { Card } from '../ui/card';
 
 interface DraggableCardProps {
-  id: number;
+  id: string | number;
   index: number;
   onMove: (dragIndex: number, hoverIndex: number) => void;
   children: React.ReactNode;
@@ -35,7 +35,7 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
 
   const [, drop] = useDrop({
     accept: ITEM_TYPE,
-    hover: (item: { id: number; index: number }, monitor) => {
+    hover: (item: { id: string | number; index: number }, monitor) => {
       if (!ref.current) {
         return;
       }

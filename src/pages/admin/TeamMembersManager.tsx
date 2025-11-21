@@ -74,7 +74,7 @@ export const TeamMembersManager: React.FC = () => {
   const [isDragMode, setIsDragMode] = useState(false);
   const [hasOrderChanged, setHasOrderChanged] = useState(false);
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     role: "",
@@ -105,6 +105,9 @@ export const TeamMembersManager: React.FC = () => {
       const [membersData, publicationsData] = await Promise.all(
         [fetchTeamMembers(), fetchPublications()],
       );
+      console.log('Team members loaded:', membersData.length, 'members');
+      console.log('Sample member with count:', membersData[0]);
+      console.log('Publications loaded:', publicationsData.length, 'publications');
       setTeamMembers(membersData);
       setPublications(publicationsData);
     } catch (error) {
@@ -118,10 +121,14 @@ export const TeamMembersManager: React.FC = () => {
   };
 
   // Calculate publications count for a member
-  const getPublicationsCount = (memberId: number): number => {
-    return publications.filter((pub) =>
-      pub.author_ids?.includes(memberId),
-    ).length;
+  const getPublicationsCount = (memberId: string): number => {
+    return publications.filter((pub) => {
+      if (!pub.author_ids || pub.author_ids.length === 0) return false;
+      // Compare as strings, handling potential ObjectId format variations
+      return pub.author_ids.some(authorId => 
+        String(authorId).toLowerCase() === String(memberId).toLowerCase()
+      );
+    }).length;
   };
 
   const handleOpenDialog = (item?: TeamMember) => {
@@ -272,7 +279,7 @@ export const TeamMembersManager: React.FC = () => {
 
   const confirm = useConfirm();
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     const ok = await confirm({
       title: 'Delete Team Member',
       description: 'Are you sure you want to delete this team member? This action cannot be undone.',
@@ -302,7 +309,7 @@ export const TeamMembersManager: React.FC = () => {
     }
   };
 
-  const toggleSelectItem = (id: number) => {
+  const toggleSelectItem = (id: string) => {
     setSelectedIds(prev => 
       prev.includes(id) 
         ? prev.filter(i => i !== id)
@@ -576,9 +583,8 @@ export const TeamMembersManager: React.FC = () => {
             const expertise = Array.isArray(member.expertise)
               ? member.expertise
               : [];
-            const publicationsCount = getPublicationsCount(
-              member.id,
-            );
+            // Use publications_count from backend if available, otherwise calculate from frontend
+            const publicationsCount = member.publications_count ?? getPublicationsCount(member.id);
 
             return (
               <DraggableCard

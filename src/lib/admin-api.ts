@@ -85,7 +85,7 @@ export const createTeamMember = async (data: FormData) => {
   return response.json();
 };
 
-export const updateTeamMember = async (id: number, data: FormData) => {
+export const updateTeamMember = async (id: string, data: FormData) => {
   const response = await fetch(`${API_BASE_URL}/api/admin/team-members/${id}`, {
     method: 'PUT',
     headers: {
@@ -100,7 +100,7 @@ export const updateTeamMember = async (id: number, data: FormData) => {
   return response.json();
 };
 
-export const deleteTeamMember = async (id: number) => {
+export const deleteTeamMember = async (id: string) => {
   const response = await fetch(`${API_BASE_URL}/api/admin/team-members/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
@@ -248,7 +248,7 @@ export const reorderResearchAreas = async (orderedIds: number[]) => {
   return response.json();
 };
 
-export const reorderTeamMembers = async (orderedIds: number[]) => {
+export const reorderTeamMembers = async (orderedIds: string[]) => {
   const response = await fetch(`${API_BASE_URL}/api/admin/team-members/reorder`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
