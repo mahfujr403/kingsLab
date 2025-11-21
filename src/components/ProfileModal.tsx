@@ -27,7 +27,19 @@ export function ProfileModal({
 
   const getMemberPublications = () => {
     if (!member) return [];
-    return publications.filter(pub => pub.author_ids?.includes(member.id));
+    return publications.filter(pub => {
+      // Check if member.id is in author_ids array
+      const hasAuthorId = pub.author_ids?.some(id => {
+        // Handle both string and ObjectId formats
+        const idStr = typeof id === 'string' ? id : id.toString();
+        return idStr === member.id || idStr === member.id.toString();
+      });
+      
+      // Fallback: Check if member name appears in the authors string
+      const hasAuthorName = pub.authors?.toLowerCase().includes(member.name.toLowerCase());
+      
+      return hasAuthorId || hasAuthorName;
+    });
   };
 
   if (!member) return null;
