@@ -10,6 +10,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { Card } from "../../components/ui/card";
+import { Loader2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -67,6 +68,7 @@ export const TeamMembersManager: React.FC = () => {
     Publication[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] =
     useState<TeamMember | null>(null);
@@ -223,6 +225,7 @@ export const TeamMembersManager: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
 
     const formDataObj = new FormData();
     formDataObj.append("name", formData.name);
@@ -274,6 +277,8 @@ export const TeamMembersManager: React.FC = () => {
       toast.error(
         error.message || "Failed to save team member",
       );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1271,13 +1276,19 @@ export const TeamMembersManager: React.FC = () => {
                   type="button"
                   variant="outline"
                   onClick={handleCloseDialog}
+                  disabled={isSaving}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingItem
-                    ? "Update Team Member"
-                    : "Create Team Member"}
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingItem ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    editingItem ? "Update Team Member" : "Create Team Member"
+                  )}
                 </Button>
               </DialogFooter>
             </form>

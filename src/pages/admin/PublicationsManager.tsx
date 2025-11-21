@@ -14,7 +14,7 @@ import { Switch } from '../../components/ui/switch';
 import { Badge } from '../../components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { toast } from 'sonner';
-import { Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, FileText, CheckSquare, Square, Trash, Eye, ChevronDown, X, ChevronUp } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, ArrowUpDown, Filter, FileText, CheckSquare, Square, Trash, Eye, ChevronDown, X, ChevronUp, Loader2 } from 'lucide-react';
 import { fetchPublications, fetchTeamMembers } from '../../lib/api';
 import { createPublication, updatePublication, deletePublication } from '../../lib/admin-api';
 import { Publication, TeamMember } from '../../lib/types';
@@ -24,6 +24,7 @@ export const PublicationsManager: React.FC = () => {
   const [publications, setPublications] = useState<Publication[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Publication | null>(null);
   
@@ -274,6 +275,7 @@ export const PublicationsManager: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
 
     const formDataObj = new FormData();
     // Normalize publication type to match backend enum (lowercase, underscores)
@@ -331,6 +333,8 @@ export const PublicationsManager: React.FC = () => {
       loadPublications();
     } catch (error) {
       toast.error('Failed to save publication');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -1310,11 +1314,18 @@ export const PublicationsManager: React.FC = () => {
               </div>
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                <Button type="button" variant="outline" onClick={handleCloseDialog} disabled={isSaving}>
                   Cancel
                 </Button>
-                <Button type="submit">
-                  {editingItem ? 'Update' : 'Create'}
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {editingItem ? 'Updating...' : 'Creating...'}
+                    </>
+                  ) : (
+                    editingItem ? 'Update' : 'Create'
+                  )}
                 </Button>
               </DialogFooter>
             </form>

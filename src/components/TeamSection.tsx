@@ -4,8 +4,6 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./ui/dialog";
-import { Separator } from "./ui/separator";
 import { Mail, Linkedin, GraduationCap, BookOpen, ExternalLink, Github, FileText, Users, Calendar, Building2, TrendingUp, Award, Search, X, Filter, SlidersHorizontal, Grid3x3, List, User, FlaskConical } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { motion, AnimatePresence } from "motion/react";
@@ -13,6 +11,7 @@ import { useApi } from "../hooks/useApi";
 import { api } from "../lib/api";
 import { mockTeamMembers, mockPublications } from "../lib/mock-data";
 import { ProfileModal } from "./ProfileModal";
+import { PublicationDetailModal } from "./PublicationDetailModal";
 import type { TeamMember, Publication } from "../lib/types";
 
 type SortOption = "name" | "role" | "publications";
@@ -556,214 +555,24 @@ export function TeamSection() {
         publications={publications || []}
         onPublicationClick={(pub) => {
           setSelectedPublication(pub);
-          setSelectedMember(null);
         }}
       />
 
-      {/* Publication Detail Modal */}
-      <Dialog open={!!selectedPublication} onOpenChange={() => setSelectedPublication(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-          {selectedPublication && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="text-2xl pr-8 text-slate-900 dark:text-slate-50">{selectedPublication.title}</DialogTitle>
-                <DialogDescription className="sr-only">
-                  Publication details for {selectedPublication.title}
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-6 mt-6">
-                {/* Event Photo and Certificate */}
-                {selectedPublication.event_photo && (
-                  <div className="relative rounded-xl overflow-hidden shadow-lg">
-                    <ImageWithFallback
-                      src={selectedPublication.event_photo}
-                      alt={`${selectedPublication.title} event`}
-                      className="w-full h-64 object-cover"
-                    />
-                  </div>
-                )}
-
-                {selectedPublication.certificate_url && (
-                  <a
-                    href={selectedPublication.certificate_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-2 border-amber-200 dark:border-amber-800 rounded-xl p-6 flex items-center justify-center gap-3 cursor-pointer"
-                    >
-                      <Award className="h-8 w-8 text-amber-600 dark:text-amber-400" />
-                      <div>
-                        <div className="text-amber-900 dark:text-amber-300">Award Certificate</div>
-                        <div className="text-sm text-amber-700 dark:text-amber-400">Click to view certificate</div>
-                      </div>
-                      <ExternalLink className="h-5 w-5 text-amber-600 dark:text-amber-400 ml-auto" />
-                    </motion.div>
-                  </a>
-                )}
-
-                <Separator className="bg-slate-200 dark:bg-slate-700" />
-
-                {/* Authors - Clickable */}
-                <div>
-                  <div className="flex items-center gap-2 text-slate-900 dark:text-slate-50 mb-3">
-                    <Users className="h-5 w-5 text-violet-600 dark:text-violet-400" />
-                    <span>Authors</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedPublication.author_ids?.map((authorId) => {
-                      const author = teamMembers?.find(m => m.id === authorId);
-                      return (
-                        <motion.button
-                          key={authorId}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (author) {
-                              setSelectedMember(author);
-                              setSelectedPublication(null);
-                            }
-                          }}
-                          className="bg-violet-100 dark:bg-violet-950/30 hover:bg-violet-200 dark:hover:bg-violet-950/50 text-violet-800 dark:text-violet-300 px-4 py-2 rounded-lg transition-colors cursor-pointer flex items-center gap-2"
-                        >
-                          <Users className="h-4 w-4" />
-                          {author?.name || "Unknown"}
-                        </motion.button>
-                      );
-                    })}
-                  </div>
-                  {!selectedPublication.author_ids && (
-                    <p className="text-sm text-slate-600 dark:text-slate-400">{selectedPublication.authors}</p>
-                  )}
-                </div>
-
-                {/* Publication Details Grid */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {/* Publication Type */}
-                  <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4">
-                    <div className="text-violet-900 dark:text-violet-300 mb-1">Publication Type</div>
-                    <p className="text-sm text-violet-800 dark:text-violet-400">{selectedPublication.publication_type}</p>
-                  </div>
-
-                  {/* Year */}
-                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-blue-900 dark:text-blue-300 mb-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>Year</span>
-                    </div>
-                    <p className="text-sm text-blue-800 dark:text-blue-400">{selectedPublication.year}</p>
-                  </div>
-
-                  {/* Publisher */}
-                  {selectedPublication.publisher && (
-                    <div className="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-orange-900 dark:text-orange-300 mb-1">
-                        <Building2 className="h-4 w-4" />
-                        <span>Publisher</span>
-                      </div>
-                      <p className="text-sm text-orange-800 dark:text-orange-400">{selectedPublication.publisher}</p>
-                    </div>
-                  )}
-
-                  {/* Conference/Journal/Book */}
-                  {selectedPublication.conference && (
-                    <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-300 mb-1">
-                        <Building2 className="h-4 w-4" />
-                        <span>Conference</span>
-                      </div>
-                      <p className="text-sm text-emerald-800 dark:text-emerald-400">{selectedPublication.conference}</p>
-                    </div>
-                  )}
-
-                  {selectedPublication.journal && (
-                    <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-blue-900 dark:text-blue-300 mb-1">
-                        <BookOpen className="h-4 w-4" />
-                        <span>Journal</span>
-                      </div>
-                      <p className="text-sm text-blue-800 dark:text-blue-400">{selectedPublication.journal}</p>
-                    </div>
-                  )}
-
-                  {selectedPublication.book_chapter && (
-                    <div className="bg-pink-50 dark:bg-pink-950/30 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-pink-900 dark:text-pink-300 mb-1">
-                        <FileText className="h-4 w-4" />
-                        <span>Book Chapter</span>
-                      </div>
-                      <p className="text-sm text-pink-800 dark:text-pink-400">{selectedPublication.book_chapter}</p>
-                    </div>
-                  )}
-
-                  {/* Citations */}
-                  <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-300 mb-1">
-                      <TrendingUp className="h-4 w-4" />
-                      <span>Citations</span>
-                    </div>
-                    <p className="text-2xl text-emerald-800 dark:text-emerald-400">{selectedPublication.citations}</p>
-                  </div>
-
-                  {/* Category */}
-                  <div className="bg-cyan-50 dark:bg-cyan-950/30 rounded-lg p-4">
-                    <div className="text-cyan-900 dark:text-cyan-300 mb-1">Category</div>
-                    <Badge variant="outline" className="bg-white dark:bg-slate-800 border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-400">{selectedPublication.category}</Badge>
-                  </div>
-                </div>
-
-                {/* Volume, Issue, Pages */}
-                {(selectedPublication.volume || selectedPublication.issue || selectedPublication.pages) && (
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4">
-                    <div className="text-slate-900 dark:text-slate-50 mb-2">Publication Information</div>
-                    <div className="flex flex-wrap gap-4 text-sm text-slate-700 dark:text-slate-300">
-                      {selectedPublication.volume && <span>Volume: {selectedPublication.volume}</span>}
-                      {selectedPublication.issue && <span>Issue: {selectedPublication.issue}</span>}
-                      {selectedPublication.pages && <span>Pages: {selectedPublication.pages}</span>}
-                    </div>
-                  </div>
-                )}
-
-                {/* Abstract */}
-                {selectedPublication.abstract && (
-                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800/50 dark:to-blue-950/30 rounded-lg p-6 border border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-2 text-slate-900 dark:text-slate-50 mb-3">
-                      <FileText className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                      <span>Abstract</span>
-                    </div>
-                    <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedPublication.abstract}</p>
-                  </div>
-                )}
-
-                {/* View Publication Button */}
-                {selectedPublication.url && (
-                  <a
-                    href={selectedPublication.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="block"
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-lg px-6 py-4 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition-shadow"
-                    >
-                      <BookOpen className="h-5 w-5" />
-                      <span>View Publication</span>
-                      <ExternalLink className="h-4 w-4" />
-                    </motion.div>
-                  </a>
-                )}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Publication Detail Modal - Using shared PublicationDetailModal component */}
+      <PublicationDetailModal
+        publication={selectedPublication}
+        isOpen={!!selectedPublication}
+        onClose={() => setSelectedPublication(null)}
+        teamMembers={teamMembers || []}
+        publications={publications || []}
+        onAuthorClick={(author) => {
+          setSelectedMember(author);
+          setSelectedPublication(null);
+        }}
+        onRelatedPublicationClick={(pub) => {
+          setSelectedPublication(pub);
+        }}
+      />
     </section>
   );
 }

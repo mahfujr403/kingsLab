@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from "../../components/ui/badge";
 import { AdminLoadingSpinner } from "../../components/admin/AdminLoadingSpinner";
 import { DraggableCard } from "../../components/admin/DraggableCard";
-import { Plus, Edit, Trash2, Calendar, Milestone, Award, BookOpen, TrendingUp, GripVertical, Image as ImageIcon, Save } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Milestone, Award, BookOpen, TrendingUp, GripVertical, Image as ImageIcon, Save, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "../../lib/api";
 import { createTimelineEvent, updateTimelineEvent, deleteTimelineEvent, reorderTimelineEvents } from "../../lib/admin-api";
@@ -514,11 +514,18 @@ export function TimelineManager() {
             </div>
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={handleCloseDialog}>
+              <Button type="button" variant="outline" onClick={handleCloseDialog} disabled={saving}>
                 Cancel
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving..." : editingEvent ? "Update Event" : "Create Event"}
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  editingEvent ? "Update Event" : "Create Event"
+                )}
               </Button>
             </div>
           </form>

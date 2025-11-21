@@ -1,23 +1,18 @@
-import { useState, useMemo, useRef } from "react";
-import type { MouseEvent } from 'react';
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
-import { Separator } from "./ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
-import { ExternalLink, Search, TrendingUp, BookOpen, Award, Calendar, Link as LinkIcon, Building2, Users, FileText, Quote, Sparkles, Grid3x3, List, BarChart3, Copy, Share2, FilterX } from "lucide-react";
+import { ExternalLink, Search, TrendingUp, BookOpen, Award, Calendar, Building2, Users, FileText, Sparkles, Grid3x3, List, BarChart3, FilterX } from "lucide-react";
 import { motion } from "motion/react";
-import { toast } from "sonner";
 import { useApi } from "../hooks/useApi";
-import { useFocusTrap } from "../hooks/useFocusTrap";
 import { api } from "../lib/api";
 import { mockPublications, mockTeamMembers } from "../lib/mock-data";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { ProfileModal } from "./ProfileModal";
+import { PublicationDetailModal } from "./PublicationDetailModal";
 import type { Publication, TeamMember } from "../lib/types";
 
 type SortOption = "year-desc" | "year-asc" | "citations-desc" | "title-asc";
@@ -32,7 +27,6 @@ export function Publications() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedPublication, setSelectedPublication] = useState<Publication | null>(null);
   const [selectedAuthorProfile, setSelectedAuthorProfile] = useState<TeamMember | null>(null);
-  const modalRef = useRef<HTMLElement>(null);
 
   const { data: allPublications } = useApi<Publication[]>(() => api.getPublications(), mockPublications);
   const { data: teamMembers } = useApi<TeamMember[]>(() => api.getTeamMembers(), mockTeamMembers);
@@ -46,33 +40,6 @@ export function Publications() {
     return value.split(',').map(c => c.trim()).filter(Boolean);
   };
   const getPublicationCategories = (pub: Publication | (Publication & { categories?: string[] })) => parseCategories((pub as any).categories ?? pub.category);
-
-  const copyCitation = (format: 'bibtex' | 'apa' | 'mla', pub: Publication) => {
-    const base = `${pub.authors}. ${pub.title}. ${pub.year}.`;
-    let citation = base;
-    if (format === 'bibtex') citation = `@article{${pub.id}, title={${pub.title}}, author={${pub.authors}}, year={${pub.year}}}`;
-    if (format === 'apa') citation = `${pub.authors} (${pub.year}). ${pub.title}.`;
-    if (format === 'mla') citation = `${pub.authors}. "${pub.title}." ${pub.year}.`;
-    navigator.clipboard?.writeText(citation);
-    toast.success(`${format.toUpperCase()} citation copied`);
-  };
-  const sharePaper = (pub: Publication) => {
-    const url = pub.url || window.location.href;
-    navigator.clipboard?.writeText(url);
-    toast.success('Link copied');
-  };
-  const handleAuthorClick = (id: string) => {
-    const author = team.find(m => m.id === id);
-    if (author) setSelectedAuthorProfile(author);
-  };
-  const getRelatedPublications = (pub: Publication) => {
-    const cats = getPublicationCategories(pub);
-    return publications.filter(p => p.id !== pub.id && (
-      getPublicationCategories(p).some(c => cats.includes(c)) || p.year === pub.year
-    )).slice(0, 3);
-  };
-
-  useFocusTrap(modalRef as any, !!selectedPublication);
 
   const uniqueYears = useMemo(() => [...new Set(publications.map(p => p.year))].sort((a,b)=>b-a), [publications]);
   const uniqueAuthors = useMemo(() => {
@@ -304,60 +271,32 @@ export function Publications() {
         )}
       </div>
 
-      {/* Detail Modal */}
-      <Dialog open={!!selectedPublication} onOpenChange={()=>setSelectedPublication(null)}>
-        <DialogContent ref={modalRef as any} className="max-w-[90%] md:max-w-[80vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800" aria-describedby="publication-description">
-          {selectedPublication && (
-            <>
-              <DialogHeader>
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <DialogTitle className="text-2xl pr-8 text-slate-900 dark:text-slate-50">{selectedPublication.title}</DialogTitle>
-                    <DialogDescription id="publication-description" className="mt-2 text-slate-600 dark:text-slate-400">Published in {selectedPublication.year} · {selectedPublication.citations} citations</DialogDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="outline" size="sm"><Quote className="h-4 w-4 mr-2"/>Cite</Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onClick={(e: MouseEvent)=>{e.preventDefault();copyCitation('bibtex',selectedPublication);}}><Copy className="h-4 w-4 mr-2"/>Copy BibTeX</DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e: MouseEvent)=>{e.preventDefault();copyCitation('apa',selectedPublication);}}><Copy className="h-4 w-4 mr-2"/>Copy APA</DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e: MouseEvent)=>{e.preventDefault();copyCitation('mla',selectedPublication);}}><Copy className="h-4 w-4 mr-2"/>Copy MLA</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <TooltipProvider><Tooltip><TooltipTrigger asChild><Button variant="outline" size="sm" onClick={()=>sharePaper(selectedPublication)}><Share2 className="h-4 w-4"/></Button></TooltipTrigger><TooltipContent>Share</TooltipContent></Tooltip></TooltipProvider>
-                  </div>
-                </div>
-              </DialogHeader>
-              <div className="space-y-6 mt-6">
-                {selectedPublication.event_photo && <div className="relative rounded-xl overflow-hidden shadow-lg"><ImageWithFallback src={selectedPublication.event_photo} alt={`${selectedPublication.title} event`} className="w-full h-64 object-cover"/></div>}
-                {selectedPublication.certificate_url && <div className="relative rounded-xl overflow-hidden shadow-lg border-4 border-yellow-300"><div className="absolute top-4 left-4 z-10"><div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2"><Award className="h-5 w-5"/><span>Award Certificate</span></div></div><ImageWithFallback src={selectedPublication.certificate_url} alt={`${selectedPublication.title} certificate`} className="w-full h-auto object-contain bg-white"/></div>}
-                <Separator />
-                <div>
-                  <div className="flex items-center gap-2 text-slate-900 dark:text-slate-50 mb-3"><Users className="h-5 w-5 text-violet-600 dark:text-violet-400"/><span>Authors</span></div>
-                  <div className="flex flex-wrap gap-2">{selectedPublication.author_ids?.map((entry:any)=>{const rawId: string | null = (()=>{if(typeof entry==='number') return entry.toString(); if(typeof entry==='string') return entry; if(entry && (entry as any).id!=null) return (entry as any).id.toString(); if(entry && (entry as any)._id!=null) return (entry as any)._id.toString(); return null;})(); const authorObj = rawId? team.find(m=>m.id===rawId):undefined; const displayName = authorObj?.name || entry?.name || (typeof entry==='string'?entry:'Unknown'); return <motion.button key={(rawId??displayName) as any} whileHover={{scale:1.05}} whileTap={{scale:0.95}} onClick={(e)=>{e.stopPropagation(); if(rawId) handleAuthorClick(rawId);}} className="bg-violet-100 dark:bg-violet-950/30 hover:bg-violet-200 dark:hover:bg-violet-900/40 text-violet-800 dark:text-violet-300 px-4 py-2 rounded-lg transition-colors cursor-pointer flex items-center gap-2"><Users className="h-4 w-4"/>{displayName}</motion.button>;})}</div>
-                  {!selectedPublication.author_ids && <p className="text-sm text-slate-600 dark:text-slate-400">{selectedPublication.authors}</p>}
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4"><div className="text-violet-900 dark:text-violet-300 mb-1">Publication Type</div><p className="text-sm text-violet-800 dark:text-violet-400">{selectedPublication.publication_type}</p></div>
-                  <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4"><div className="flex items-center gap-2 text-blue-900 dark:text-blue-300 mb-1"><Calendar className="h-4 w-4"/><span>Year</span></div><p className="text-sm text-blue-800 dark:text-blue-400">{selectedPublication.year}</p></div>
-                  {selectedPublication.publisher && <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4"><div className="flex items-center gap-2 text-slate-900 dark:text-slate-300 mb-1"><Building2 className="h-4 w-4"/><span>Publisher</span></div><p className="text-sm text-slate-800 dark:text-slate-400">{selectedPublication.publisher}</p></div>}
-                  {selectedPublication.conference && <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4"><div className="flex items-center gap-2 text-violet-900 dark:text-violet-300 mb-1"><Building2 className="h-4 w-4"/><span>Conference</span></div><p className="text-sm text-violet-800 dark:text-violet-400">{selectedPublication.conference}</p></div>}
-                  {selectedPublication.journal && <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4"><div className="flex items-center gap-2 text-blue-900 dark:text-blue-300 mb-1"><BookOpen className="h-4 w-4"/><span>Journal</span></div><p className="text-sm text-blue-800 dark:text-blue-400">{selectedPublication.journal}</p></div>}
-                  {selectedPublication.book_chapter && <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4"><div className="flex items-center gap-2 text-slate-900 dark:text-slate-300 mb-1"><FileText className="h-4 w-4"/><span>Book Chapter</span></div><p className="text-sm text-slate-800 dark:text-slate-400">{selectedPublication.book_chapter}</p></div>}
-                  <div className="bg-violet-50 dark:bg-violet-950/30 rounded-lg p-4"><div className="flex items-center gap-2 text-violet-900 dark:text-violet-300 mb-1"><TrendingUp className="h-4 w-4"/><span>Citations</span></div><p className="text-2xl text-violet-800 dark:text-violet-400">{selectedPublication.citations}</p></div>
-                </div>
-                <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-4"><div className="text-blue-900 dark:text-blue-300 mb-1">Categories</div><div className="flex flex-wrap gap-2">{getPublicationCategories(selectedPublication).map(cat => <Badge key={cat} variant="outline" className="bg-white dark:bg-slate-800 border-blue-200 dark:border-blue-800">{cat}</Badge>)}{getPublicationCategories(selectedPublication).length===0 && <Badge variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400">Uncategorised</Badge>}</div></div>
-                {(selectedPublication.volume||selectedPublication.issue||selectedPublication.pages||selectedPublication.doi) && <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4"><div className="text-slate-900 dark:text-slate-50 mb-2">Publication Information</div><div className="flex flex-wrap gap-4 text-sm text-slate-700 dark:text-slate-300">{selectedPublication.volume && <span>Volume: {selectedPublication.volume}</span>}{selectedPublication.issue && <span>Issue: {selectedPublication.issue}</span>}{selectedPublication.pages && <span>Pages: {selectedPublication.pages}</span>}{selectedPublication.doi && <span className="flex items-center gap-1"><LinkIcon className="h-3 w-3"/>DOI: <a href={`https://doi.org/${selectedPublication.doi}`} target="_blank" rel="noopener noreferrer" className="text-violet-600 dark:text-violet-400 hover:underline" onClick={(e)=>e.stopPropagation()}>{selectedPublication.doi}</a></span>}</div></div>}
-                {selectedPublication.abstract && <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-800 dark:to-blue-950/30 rounded-lg p-6 border border-slate-200 dark:border-slate-700"><div className="flex items-center gap-2 text-slate-900 dark:text-slate-50 mb-3"><FileText className="h-5 w-5 text-slate-600 dark:text-slate-400"/><span>Abstract</span></div><p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{selectedPublication.abstract}</p></div>}
-                {selectedPublication.url && <a href={selectedPublication.url} target="_blank" rel="noopener noreferrer" onClick={(e)=>e.stopPropagation()} className="block"><motion.div whileHover={{scale:1.02}} whileTap={{scale:0.98}} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg px-6 py-4 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-xl transition-shadow" tabIndex={0}><BookOpen className="h-5 w-5"/><span>View Publication</span><ExternalLink className="h-4 w-4"/></motion.div></a>}
-                {(() => { const related = getRelatedPublications(selectedPublication); if(!related.length) return null; return (<><Separator className="my-6"/><div><h3 className="text-lg mb-4 flex items-center gap-2"><Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400"/>Related Publications</h3><div className="grid gap-3">{related.map(relPub => <motion.div key={relPub.id} whileHover={{x:4}} onClick={(e)=>{e.stopPropagation();setSelectedPublication(relPub);}} role="button" tabIndex={0} aria-label={`View ${relPub.title}`} onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();setSelectedPublication(relPub);}}} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-400 dark:hover:border-blue-600 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all cursor-pointer group"><div className="flex items-start justify-between gap-3"><div className="flex-1 min-w-0"><h4 className="text-sm group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 mb-1">{relPub.title}</h4><div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400"><Calendar className="h-3 w-3"/><span>{relPub.year}</span><span>•</span><TrendingUp className="h-3 w-3 text-green-500"/><span>{relPub.citations} citations</span></div></div><div className="flex flex-wrap gap-1 shrink-0">{getPublicationCategories(relPub).map(cat => <Badge key={cat} variant="outline" className="text-xs">{cat}</Badge>)}{getPublicationCategories(relPub).length===0 && <Badge variant="outline" className="text-xs text-slate-500">None</Badge>}</div></div></motion.div>)}</div></div></>); })()}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Publication Detail Modal */}
+      <PublicationDetailModal
+        publication={selectedPublication}
+        isOpen={!!selectedPublication}
+        onClose={() => setSelectedPublication(null)}
+        teamMembers={team}
+        publications={publications}
+        onAuthorClick={(author) => {
+          setSelectedAuthorProfile(author);
+          setSelectedPublication(null);
+        }}
+        onRelatedPublicationClick={(pub) => {
+          setSelectedPublication(pub);
+        }}
+      />
 
-      <ProfileModal member={selectedAuthorProfile} isOpen={!!selectedAuthorProfile} onClose={()=>setSelectedAuthorProfile(null)} publications={publications} onPublicationClick={(pub)=>{setSelectedPublication(pub); setSelectedAuthorProfile(null);}} />
+      <ProfileModal 
+        member={selectedAuthorProfile} 
+        isOpen={!!selectedAuthorProfile} 
+        onClose={() => setSelectedAuthorProfile(null)} 
+        publications={publications} 
+        onPublicationClick={(pub) => {
+          setSelectedPublication(pub); 
+          setSelectedAuthorProfile(null);
+        }} 
+      />
     </section>
   );
 }
