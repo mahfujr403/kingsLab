@@ -65,7 +65,7 @@ export const PublicationsManager: React.FC = () => {
     volume: '',
     issue: '',
     publisher: '',
-    status: 'draft' as 'draft' | 'published',
+    status: 'draft' as 'draft' | 'on_review' | 'accepted' | 'presented' | 'published',
     show_in_journey: false,
   });
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
@@ -804,8 +804,18 @@ export const PublicationsManager: React.FC = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
                       <h3 className="text-gray-900 text-sm md:text-base break-words">{pub.title}</h3>
                       <div className="flex flex-wrap gap-2">
-                        <Badge variant={(pub.status || 'published') === 'published' ? 'default' : 'secondary'}>
-                          {(pub.status || 'published') === 'published' ? '✓ Published' : '📝 Draft'}
+                        <Badge variant={
+                          (pub.status || 'published') === 'published' 
+                            ? 'default' 
+                            : (pub.status === 'on_review' || pub.status === 'accepted') 
+                              ? 'outline' 
+                              : 'secondary'
+                        }>
+                          {pub.status === 'draft' && '📝 Draft'}
+                          {pub.status === 'on_review' && '🔍 On Review'}
+                          {pub.status === 'accepted' && '✅ Accepted'}
+                          {pub.status === 'presented' && '🎤 Presented'}
+                          {(pub.status === 'published' || !pub.status) && '✓ Published'}
                         </Badge>
                         {pub.show_in_journey && (
                           <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
@@ -1011,8 +1021,28 @@ export const PublicationsManager: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Categories *</Label>
-                    <Popover>
+                    <Label htmlFor="status">Status *</Label>
+                    <Select 
+                      value={formData.status} 
+                      onValueChange={(value: 'draft' | 'on_review' | 'accepted' | 'presented' | 'published') => setFormData({ ...formData, status: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">📝 Draft</SelectItem>
+                        <SelectItem value="on_review">🔍 On Review</SelectItem>
+                        <SelectItem value="accepted">✅ Accepted</SelectItem>
+                        <SelectItem value="presented">🎤 Presented</SelectItem>
+                        <SelectItem value="published">✓ Published</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Categories *</Label>
+                  <Popover>
                       <PopoverTrigger asChild>
                         <Button variant="outline" type="button" className="w-full justify-between">
                           <span className="text-gray-600 line-clamp-1">
@@ -1061,7 +1091,6 @@ export const PublicationsManager: React.FC = () => {
                     </Popover>
                     <p className="text-xs text-gray-500">You can select multiple categories. Stored as comma separated string.</p>
                   </div>
-                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">

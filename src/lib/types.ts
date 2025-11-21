@@ -69,7 +69,7 @@ export interface Publication {
   volume?: string;
   issue?: string;
   publisher?: string;
-  status?: 'draft' | 'published';
+  status?: 'draft' | 'on_review' | 'accepted' | 'presented' | 'published';
   show_in_journey?: boolean;
   [key: string]: string | number | string[] | undefined | boolean; // Allow dynamic access to all property types
 }
