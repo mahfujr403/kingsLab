@@ -87,8 +87,8 @@ exports.publicationValidation = [
     .withMessage('Each category must be a non-empty string'),
   body('status')
     .optional()
-    .isIn(['draft', 'published'])
-    .withMessage('Status must be draft or published'),
+    .isIn(['draft', 'on_review', 'accepted', 'presented', 'published'])
+    .withMessage('Status must be one of: draft, on_review, accepted, presented, or published'),
   body('tag')
     .optional()
     .trim(),

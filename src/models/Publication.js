@@ -48,8 +48,8 @@ const publicationSchema = new mongoose.Schema({
   }],
   status: {
     type: String,
-    enum: ['draft', 'published'],
-    default: 'published'
+    enum: ['draft', 'on_review', 'accepted', 'presented', 'published'],
+    default: 'draft'
   },
   tag: {
     type: String,
