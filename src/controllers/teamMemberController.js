@@ -55,7 +55,21 @@ exports.getAllTeamMembers = async (req, res, next) => {
       TeamMember.countDocuments(query)
     ]);
 
-    return paginatedResponse(res, teamMembers, {
+    // Calculate publications count for each team member
+    const Publication = require('../models/Publication');
+    const teamMembersWithCounts = await Promise.all(
+      teamMembers.map(async (member) => {
+        const publicationsCount = await Publication.countDocuments({
+          author_ids: member._id
+        });
+        return {
+          ...member,
+          publications_count: publicationsCount
+        };
+      })
+    );
+
+    return paginatedResponse(res, teamMembersWithCounts, {
       page: pageNum,
       limit: limitNum,
       total,
