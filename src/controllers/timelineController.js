@@ -7,7 +7,7 @@ const { uploadBufferToCloudinary, deleteFromCloudinary } = require('../config/cl
 // @access  Public
 exports.getAllTimeline = async (req, res, next) => {
   try {
-    const { year, sort = 'date', order = 'desc' } = req.query;
+    const { year, sort = 'year', order = 'desc' } = req.query;
     
     // Build query
     const query = {};
@@ -123,6 +123,30 @@ exports.deleteTimelineEvent = async (req, res, next) => {
     await event.deleteOne();
     
     return successResponse(res, null, 'Timeline event deleted successfully');
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reorder timeline events
+// @route   POST /api/admin/timeline/reorder
+// @access  Private
+exports.reorderTimelineEvents = async (req, res, next) => {
+  try {
+    const { orderedIds } = req.body;
+    
+    if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+      return errorResponse(res, 'orderedIds must be a non-empty array', 400);
+    }
+    
+    // Update order for each event
+    const updatePromises = orderedIds.map((id, index) => 
+      Timeline.findByIdAndUpdate(id, { order: index })
+    );
+    
+    await Promise.all(updatePromises);
+    
+    return successResponse(res, null, 'Timeline events reordered successfully');
   } catch (error) {
     next(error);
   }

@@ -17,6 +17,9 @@ router.get('/timeline', getAllTimeline);
 // @route   GET /api/timeline/:id
 router.get('/timeline/:id', idValidation, validate, getTimelineEvent);
 
+// @route   POST /api/admin/timeline/reorder
+router.post('/admin/timeline/reorder', protect, require('../controllers/timelineController').reorderTimelineEvents);
+
 // @route   POST /api/admin/timeline
 router.post('/admin/timeline', protect, upload.single('image'), createTimelineEvent);
 

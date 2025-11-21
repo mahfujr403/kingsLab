@@ -118,6 +118,10 @@ const publicationSchema = new mongoose.Schema({
     type: String,
     trim: true
   }],
+  show_in_journey: {
+    type: Boolean,
+    default: false
+  },
   created_at: {
     type: Date,
     default: Date.now
