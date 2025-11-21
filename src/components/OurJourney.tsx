@@ -11,10 +11,11 @@ import { Separator } from './ui/separator';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 type JourneyItem = {
-  id: number;
+  id: string | number;
   year: number;
   type: 'milestone' | 'publication';
   data: TimelineEvent | Publication;
+  createdAt: number;
 };
 
 export const OurJourney: React.FC = () => {
@@ -34,7 +35,8 @@ export const OurJourney: React.FC = () => {
 
         // Use all timeline events (not only milestones) so full journey shows DB data
         setMilestones(timelineData);
-        setPublications(publicationData);
+        // Filter publications to only show those marked for journey display
+        setPublications(publicationData.filter(p => p.show_in_journey));
       } catch (error) {
         console.warn('Failed to load data from API, using mock data:', error);
         setMilestones(mockTimelineEvents.filter(e => e.category === 'milestone'));
@@ -48,20 +50,28 @@ export const OurJourney: React.FC = () => {
   }, []);
 
   // Combine milestones and publications into a single chronological list
+  // Sort by year descending (newest first), then by created date for same year
   const journeyItems: JourneyItem[] = [
     ...milestones.map(m => ({
       id: m.id,
       year: m.year,
-      type: m.category === 'publication' ? 'publication' : 'milestone',
-      data: m
+      type: (m.category === 'publication' ? 'publication' : 'milestone') as 'milestone' | 'publication',
+      data: m,
+      createdAt: m.created_at ? new Date(m.created_at).getTime() : 0
     })),
     ...publications.map(p => ({
       id: p.id,
       year: p.year,
       type: 'publication' as const,
-      data: p
+      data: p,
+      createdAt: p.created_at && typeof p.created_at === 'string' ? new Date(p.created_at).getTime() : 0
     }))
-  ].sort((a, b) => b.year - a.year);
+  ].sort((a, b) => {
+    // First sort by year (newest first)
+    if (b.year !== a.year) return b.year - a.year;
+    // If same year, sort by creation date (newest first)
+    return b.createdAt - a.createdAt;
+  });
 
   const filteredItems = selectedCategory === 'all' 
     ? journeyItems 

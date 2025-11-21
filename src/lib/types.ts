@@ -70,7 +70,8 @@ export interface Publication {
   issue?: string;
   publisher?: string;
   status?: 'draft' | 'published';
-  [key: string]: string | number | string[] | undefined; // Allow dynamic access to all property types
+  show_in_journey?: boolean;
+  [key: string]: string | number | string[] | undefined | boolean; // Allow dynamic access to all property types
 }
 
 export interface ContactInfo {
@@ -105,6 +106,8 @@ export interface TimelineEvent {
   category: string; // "milestone", "achievement", "publication", "award", etc.
   order: number;
   status?: 'draft' | 'published';
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface ApiResponse<T> {

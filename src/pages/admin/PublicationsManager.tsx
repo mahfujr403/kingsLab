@@ -10,6 +10,7 @@ import { Card } from '../../components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Checkbox } from '../../components/ui/checkbox';
+import { Switch } from '../../components/ui/switch';
 import { Badge } from '../../components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/ui/popover';
 import { toast } from 'sonner';
@@ -64,6 +65,7 @@ export const PublicationsManager: React.FC = () => {
     issue: '',
     publisher: '',
     status: 'draft' as 'draft' | 'published',
+    show_in_journey: false,
   });
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [certificatePreview, setCertificatePreview] = useState<string>('');
@@ -152,6 +154,7 @@ export const PublicationsManager: React.FC = () => {
         issue: item.issue || '',
         publisher: item.publisher || '',
         status: item.status || 'draft',
+        show_in_journey: Boolean(item.show_in_journey),
       });
       setCertificatePreview(item.certificate_url || '');
       setCertificateFile(null);
@@ -180,6 +183,7 @@ export const PublicationsManager: React.FC = () => {
         issue: '',
         publisher: '',
         status: 'draft',
+        show_in_journey: false,
       });
       setCertificatePreview('');
       setCertificateFile(null);
@@ -295,6 +299,7 @@ export const PublicationsManager: React.FC = () => {
     formDataObj.append('tag', formData.tag);
     formDataObj.append('category', formData.category);
     formDataObj.append('status', formData.status);
+    formDataObj.append('show_in_journey', formData.show_in_journey.toString());
     if (formData.abstract) formDataObj.append('abstract', formData.abstract);
     // Keywords: derive from tag plus explicit input (if added later) - currently use tag only
     if (formData.tag) formDataObj.append('keywords', formData.tag);
@@ -525,10 +530,14 @@ export const PublicationsManager: React.FC = () => {
       all: publications.length,
       draft: 0,
       published: 0,
+      journey: 0,
     };
     publications.forEach(pub => {
       const status = pub.status || 'published';
       counts[status] = (counts[status] || 0) + 1;
+      if (pub.show_in_journey) {
+        counts.journey = (counts.journey || 0) + 1;
+      }
     });
     return counts;
   }, [publications]);
@@ -550,6 +559,11 @@ export const PublicationsManager: React.FC = () => {
             <p className="text-gray-600 text-sm md:text-base">
               Manage research publications ({filteredAndSortedPublications.length} of {publications.length})
             </p>
+            {statusCounts.journey > 0 && (
+              <p className="text-xs text-blue-600 mt-1">
+                🚀 {statusCounts.journey} publication{statusCounts.journey !== 1 ? 's' : ''} shown in Our Journey timeline
+              </p>
+            )}
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <Button 
@@ -789,6 +803,11 @@ export const PublicationsManager: React.FC = () => {
                         <Badge variant={(pub.status || 'published') === 'published' ? 'default' : 'secondary'}>
                           {(pub.status || 'published') === 'published' ? '✓ Published' : '📝 Draft'}
                         </Badge>
+                        {pub.show_in_journey && (
+                          <Badge className="bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
+                            🚀 Journey
+                          </Badge>
+                        )}
                         <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs w-fit">
                           {pub.publication_type}
                         </span>
@@ -1070,6 +1089,23 @@ export const PublicationsManager: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                {/* Show in Journey Toggle */}
+                <div className="flex items-center justify-between space-x-2 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex-1">
+                    <Label htmlFor="show_in_journey" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      Show in Our Journey Timeline
+                    </Label>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                      Display this publication in the "Our Journey" section on the public site
+                    </p>
+                  </div>
+                  <Switch
+                    id="show_in_journey"
+                    checked={formData.show_in_journey}
+                    onCheckedChange={(checked: boolean) => setFormData({ ...formData, show_in_journey: checked })}
+                  />
                 </div>
               </div>
 

@@ -153,8 +153,8 @@ export function TeamSection() {
           </div>
 
           {/* Publications Badge */}
-          <div className="absolute bottom-4 left-4 right-4">
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg p-3 flex items-center justify-between">
+          <div className="absolute bottom-3 left-3 right-3">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg p-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="bg-gradient-to-br from-purple-500 to-blue-600 text-white p-2 rounded-lg" aria-hidden="true">
                   <BookOpen className="h-4 w-4" aria-hidden="true" />
@@ -181,8 +181,8 @@ export function TeamSection() {
         </div>
 
         {/* Content */}
-        <CardHeader className="flex-1 pb-1.5 pt-4">
-          <CardTitle className="group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors text-xl font-bold mb-0.5 text-slate-900 dark:text-slate-50">
+        <CardHeader className="flex-1 pb-1 pt-3">
+          <CardTitle className="group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors text-lg font-bold mb-0.5 text-slate-900 dark:text-slate-50">
             {member.name}
           </CardTitle>
           <CardDescription className="text-sm text-slate-600 dark:text-slate-400">
