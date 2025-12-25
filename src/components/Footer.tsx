@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Github, Linkedin, Twitter, Crown, ArrowUp } from "lucide-react";
 import { motion } from "motion/react";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { config } from "../lib/config";
 import { AdminLinkButton } from "./AdminLinkButton";
 
@@ -272,7 +272,7 @@ export function Footer() {
           </motion.div>
         </div>
 
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
@@ -284,7 +284,7 @@ export function Footer() {
             <span className="text-gray-600 dark:text-gray-700">•</span>
             <AdminLinkButton variant="footer" showText={true} />
           </div>
-        </motion.div>
+        </motion.div> */}
       </div>
     </footer>
   );
